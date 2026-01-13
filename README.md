@@ -11,13 +11,37 @@ Dataset link: https://insideairbnb.com/get-the-data/
 - **Semantic Search**: OpenAI embeddings for natural language understanding
 - **Hybrid Search**: Combine vector similarity with filters (amenities, location, price)
 
+## Quick Start
+
+### Option 1: GitHub Codespaces (Recommended)
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/patty-chow/contoso-bookings?quickstart=1)
+
+1. Click the badge above or create a new Codespace from this repository
+2. **Set your OpenAI API key** (choose one method):
+   - **Codespaces Secret** (recommended):
+     - Go to [GitHub Settings → Codespaces](https://github.com/settings/codespaces)
+     - Add secret: `OPENAI_API_KEY` = `your-key-here`
+   - **Or edit `.env` file** in the Codespace
+3. Wait for the devcontainer to build (DocumentDB will start automatically)
+4. Open `contoso-booking.ipynb` and run cells to load data
+5. Start the backend: `cd src/api && uvicorn main:app --reload`
+6. Start the frontend: `cd src/frontend && npm start`
+
+The Codespace includes:
+- ✅ DocumentDB running on port 10260
+- ✅ Python 3.11 + Node.js 18
+- ✅ All dependencies pre-installed
+- ✅ DocumentDB VS Code extension
+- ✅ Ports auto-forwarded (3000, 8000, 10260)
+
+### Option 2: Local Development
+
 ## Prerequisites
 
 - Python 3.8+
 - Node.js 16+
-- DocumentDB (MongoDB-compatible database with vector search)
-  - Docker: See installation instructions below
-  - Or use DocumentDB from: https://github.com/documentdb/documentdb
+- Docker (for DocumentDB)
 - OpenAI API Key from https://platform.openai.com/
 
 ## How to run locally
