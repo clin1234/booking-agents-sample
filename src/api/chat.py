@@ -3,8 +3,7 @@ import os
 import openai 
 import cosmosdb
 from langchain.prompts import ChatPromptTemplate
-from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
-from langchain_community.vectorstores.azure_cosmos_db import AzureCosmosDBVectorSearch
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from typing import List
 from bson import ObjectId
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
@@ -15,25 +14,18 @@ load_dotenv(override=True)
 
 # Create RAG Function
 
-
-MONGO_CONNECTION_STRING= os.getenv("MONGO_CONNECTION_STRING_DISKANN")
-COLLECTION_NAME=os.getenv("COLLECTION_NAME") if os.getenv("COLLECTION_NAME") else "listings"
-DATABASE_NAME= os.getenv("DATABASE_NAME") if os.getenv("DATABASE_NAME") else "contoso_bookings"
-AOAI_KEY = os.getenv("AOAI_KEY")
-AOAI_ENDPOINT =  os.getenv("AOAI_ENDPOINT")
-API_VERSION =  os.getenv("API_VERSION")
-AOAI_CHAT_MODEL_DEPLOYMENT = os.getenv("AOAI_COMPLETION_DEPLOYMENT")
+DOCUMENTDB_CONNECTION_STRING = os.getenv("DOCUMENTDB_CONNECTION_STRING")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME") if os.getenv("COLLECTION_NAME") else "listings"
+DATABASE_NAME = os.getenv("DATABASE_NAME") if os.getenv("DATABASE_NAME") else "contoso_bookings"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gpt-3.5-turbo")
+OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
 
 
-openai_chat_model = os.getenv("AZURE_OPENAI_CHAT_MODEL_NAME", "gpt-3.5-turbo")
-
-azure_openai_chat: AzureChatOpenAI = AzureChatOpenAI(
-    model=openai_chat_model,
-    azure_deployment=AOAI_CHAT_MODEL_DEPLOYMENT,
-    api_key=AOAI_KEY,
-    azure_endpoint=AOAI_ENDPOINT,
-    api_version=API_VERSION,
-
+openai_chat: ChatOpenAI = ChatOpenAI(
+    model=OPENAI_CHAT_MODEL,
+    api_key=OPENAI_API_KEY,
+    temperature=0.7,
 )
 
 
@@ -84,9 +76,9 @@ context_prompt_template = ChatPromptTemplate.from_template(CONTEXT_PROMPT)
 
 
 # Rephrase Chain
-rephrase_chain = rephrase_prompt_template | azure_openai_chat
+rephrase_chain = rephrase_prompt_template | openai_chat
 # Context Chain
-context_chain = context_prompt_template | azure_openai_chat
+context_chain = context_prompt_template | openai_chat
 
 MESSAGE_HISTORY = []
 

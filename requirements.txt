@@ -2,9 +2,10 @@ openai
 pymongo
 python-dotenv
 fastapi
-uvicorn #uvicorn main:app --reload
+uvicorn
 langchain
 langchain-openai
 langchain-community
 ipykernel
 geopy
+numpy
