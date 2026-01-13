@@ -1,15 +1,22 @@
 # Real-Time AirBnB Property Search with Location and Text-based Filters
 
-Use a dataset of Airbnb listings with associated descriptions and geospatial metadata (longitude/ latitude). Combine spatial filtering (find properties in a specific area) with semantic search (e.g., "garden", "3 bedrooms") using OpenAI embeddings and DocumentDB.
+Use a dataset of Airbnb listings with associated descriptions and geospatial metadata (longitude/ latitude). Combine spatial filtering (find properties in a specific area) with semantic search (e.g., "garden", "3 bedrooms") using OpenAI embeddings and DocumentDB's native vector search.
  
 Dataset link: https://insideairbnb.com/get-the-data/
+
+## Features
+
+- **Vector Search**: DocumentDB's native `cosmosSearch` with IVF (Inverted File Index) for efficient similarity search
+- **Geospatial Queries**: Find properties within a radius using MongoDB-compatible 2dsphere indexes
+- **Semantic Search**: OpenAI embeddings for natural language understanding
+- **Hybrid Search**: Combine vector similarity with filters (amenities, location, price)
 
 ## Prerequisites
 
 - Python 3.8+
 - Node.js 16+
-- DocumentDB (MongoDB-compatible database)
-  - Docker: `docker run -p 27017:27017 mongo:latest` (for local development)
+- DocumentDB (MongoDB-compatible database with vector search)
+  - Docker: See installation instructions below
   - Or use DocumentDB from: https://github.com/documentdb/documentdb
 - OpenAI API Key from https://platform.openai.com/
 
@@ -17,12 +24,21 @@ Dataset link: https://insideairbnb.com/get-the-data/
 
 ### 1. Set up DocumentDB
 
-For local development, you can use MongoDB in Docker:
+Pull and run the DocumentDB Docker image:
+
 ```bash
-docker run -d -p 27017:27017 --name documentdb mongo:latest
+# Pull the latest DocumentDB image
+docker pull ghcr.io/documentdb/documentdb/documentdb-local:latest
+
+# Tag for convenience
+docker tag ghcr.io/documentdb/documentdb/documentdb-local:latest documentdb
+
+# Run the container
+docker run -dt -p 10260:10260 --name documentdb-container documentdb \
+  --username admin --password password123
 ```
 
-Or follow the instructions at https://github.com/documentdb/documentdb to set up DocumentDB.
+**Note**: Replace `admin` and `password123` with your desired credentials. You must set these when creating the container for authentication to work.
 
 ### 2. Set Environment variables:
 
@@ -32,19 +48,27 @@ cp .env.example .env
 ```
 
 Update the `.env` file with your values:
-- `DOCUMENTDB_CONNECTION_STRING`: Your DocumentDB/MongoDB connection string (e.g., `mongodb://localhost:27017`)
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `OPENAI_EMBEDDING_MODEL`: (Optional) Default is `text-embedding-3-small`
-- `OPENAI_CHAT_MODEL`: (Optional) Default is `gpt-3.5-turbo`
-- `REACT_APP_CONTOSO_BOOKINGS_AZURE_MAPS_KEY`: Your Azure Maps API key for the map visualization
+```env
+DOCUMENTDB_CONNECTION_STRING=mongodb://admin:password123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true
+OPENAI_API_KEY=your-openai-api-key-here
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+OPENAI_CHAT_MODEL=gpt-3.5-turbo
+REACT_APP_CONTOSO_BOOKINGS_AZURE_MAPS_KEY=your-azure-maps-key
+```
 
 ### 3. Load the data:
 
 Open and run the `contoso-booking.ipynb` notebook to:
 1. Connect to DocumentDB
-2. Create necessary indexes (geospatial and amenities)
-3. Load the Airbnb listing data
-4. Generate OpenAI embeddings for each listing
+2. Create vector search index using `cosmosSearch` (IVF algorithm)
+3. Create geospatial and amenity indexes
+4. Load the Airbnb listing data
+5. Generate OpenAI embeddings for each listing
+
+The notebook will create:
+- **Vector Index**: `vector-ivf` with cosine similarity for semantic search
+- **Geospatial Index**: `2dsphere` for location-based queries
+- **Amenity Index**: For fast filtering by amenities
 
 ### 4. Install dependencies:
 
@@ -69,7 +93,25 @@ The application will be available at `http://localhost:3000`
 
 ## Architecture
 
-- **Backend**: FastAPI with OpenAI for embeddings and chat
-- **Database**: DocumentDB (MongoDB-compatible) with vector similarity search
+- **Backend**: FastAPI with OpenAI for embeddings and chat completions
+- **Database**: DocumentDB with native vector search support
+  - **Vector Search**: `cosmosSearch` operator with IVF indexing
+  - **Geospatial**: MongoDB 2dsphere indexes
+  - **Filters**: Compound queries combining vector similarity, location, and amenities
 - **Frontend**: React with Azure Maps integration
-- **Search**: Geospatial queries + semantic search using cosine similarity
+- **Search Flow**:
+  1. User query → OpenAI embedding generation
+  2. DocumentDB `cosmosSearch` finds similar listings
+  3. Filters applied (location radius, amenities)
+  4. Results ranked by similarity score
+
+## DocumentDB Vector Search
+
+DocumentDB supports MongoDB-compatible vector search through the `cosmosSearch` operator:
+
+- **Index Types**: 
+  - `vector-ivf`: Inverted File Index (used in this project)
+  - `vector-hnsw`: Hierarchical Navigable Small World
+- **Similarity Metrics**: Cosine (COS), L2 distance, Inner Product (IP)
+- **Dimensions**: Supports up to 2000+ dimensions
+- **Performance**: Optimized for large-scale vector similarity search
