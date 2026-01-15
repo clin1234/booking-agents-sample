@@ -8,12 +8,47 @@ Welcome to this hands-on workshop where you'll build a production-ready AI-power
 
 ## Learning Path
 
-The workshop follows a progressive learning path with the following modules:
+The workshop follows a progressive learning path. Each module builds on the previous one:
 
-- [Module 0: Setup & Environment](Module-00.md)
-- [Module 1: Vector Search Fundamentals](Module-01.md)
-- [Module 2: RAG Pattern Implementation](Module-02.md)
-- [Module 3: Multi-Agent System with LangGraph](Module-03.md)
+### 📚 Module Overview
+
+| Module | Title | Duration | Level | Key Topics |
+|--------|-------|----------|-------|------------|
+| [**0**](Module-00.md) | Setup & Environment | 5-10 min | Beginner | Environment verification, API keys, project structure |
+| [**1**](Module-01.md) | Vector Search Fundamentals | 20-25 min | Intermediate | Embeddings, vector indexes, semantic search |
+| [**2**](Module-02.md) | RAG Pattern Implementation | 20-25 min | Intermediate | LangChain, retrievers, conversation memory |
+| [**3**](Module-03.md) | Multi-Agent System with LangGraph | 25-30 min | Advanced | Agent orchestration, state management, workflows |
+
+### 🎯 Recommended Path
+
+```
+┌─────────────┐
+│  Module 0   │ ← Start here: Verify setup
+│   Setup     │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  Module 1   │ ← Learn: Vector search & embeddings
+│   Vector    │
+│   Search    │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  Module 2   │ ← Build: RAG conversational AI
+│    RAG      │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  Module 3   │ ← Master: Multi-agent systems
+│ Multi-Agent │
+└──────┬──────┘
+       │
+       ▼
+   🎉 Complete!
+```
 
 ---
 
@@ -103,23 +138,85 @@ Each listing includes:
 
 ## What You'll Learn
 
-### Module 1: Vector Search Fundamentals
-- Generate embeddings with OpenAI
-- Create and configure DocumentDB vector indexes (IVF algorithm)
-- Implement semantic similarity search
-- Combine vector search with filters (location, amenities, price)
+### 🔧 Module 0: Setup & Environment (5-10 minutes)
 
-### Module 2: RAG Pattern Implementation
-- Build custom retrievers with LangChain
-- Design context-aware prompts
-- Implement conversation memory
-- Handle multi-turn dialogues with context
+**Objective**: Verify your development environment and understand the project structure
 
-### Module 3: Multi-Agent System
-- Create specialized agents with distinct roles
-- Use LangGraph for agent orchestration
-- Implement agent communication patterns
-- Build a coordinated multi-agent workflow
+**Topics**:
+- ✅ Environment verification (Python, Node.js, DocumentDB)
+- ✅ API key configuration (OpenAI)
+- ✅ Project structure walkthrough
+- ✅ DocumentDB connection testing
+- ✅ Dataset overview and exploration
+
+**Deliverable**: Fully configured environment ready for development
+
+---
+
+### 🔍 Module 1: Vector Search Fundamentals (20-25 minutes)
+
+**Objective**: Build semantic search capabilities using vector embeddings
+
+**Topics**:
+- 📊 Understanding vector embeddings and similarity
+- 🤖 Generate embeddings with OpenAI text-embedding-3-small
+- 🗄️ Create DocumentDB vector indexes (IVF algorithm)
+- 🔎 Implement semantic search with cosmosSearch operator
+- 🎯 Combine vector search with filters (price, location, amenities)
+- 📈 Understand similarity scoring and ranking
+
+**Challenges**:
+1. Add price range filters (Easy)
+2. Implement property type filtering (Easy)
+3. Add geospatial radius search (Advanced)
+4. Create hybrid scoring (semantic + price) (Advanced)
+
+**Deliverable**: Working semantic search that finds listings based on natural language queries
+
+---
+
+### 💬 Module 2: RAG Pattern Implementation (20-25 minutes)
+
+**Objective**: Build conversational AI with Retrieval-Augmented Generation
+
+**Topics**:
+- 🧩 Understanding the RAG pattern
+- 🔗 Build custom LangChain retrievers for DocumentDB
+- ✍️ Design context-aware prompts with ChatPromptTemplate
+- 💭 Implement conversation memory for multi-turn dialogues
+- 🔄 Query rephrasing for better retrieval
+- 📦 Structure responses for frontend integration
+
+**Challenges**:
+1. Add sentiment analysis for tone adjustment (Medium)
+2. Extract filters automatically from queries (Hard)
+3. Include source citations in responses (Medium)
+4. Implement multi-turn clarification (Advanced)
+
+**Deliverable**: Conversational AI that provides context-aware recommendations
+
+---
+
+### 🤖 Module 3: Multi-Agent System with LangGraph (25-30 minutes)
+
+**Objective**: Create a sophisticated multi-agent system with specialized agents
+
+**Topics**:
+- 🏗️ Multi-agent architecture design
+- 🎭 Build specialized agents (Filter, Search, Recommendation, Supervisor)
+- 🔀 Agent orchestration with LangGraph StateGraph
+- 📝 Shared state management across agents
+- 🧭 Intelligent task routing with conditional workflows
+- 🔄 Conversation continuity with MemorySaver
+- ⚠️ Error handling and clarification patterns
+
+**Challenges**:
+1. Add a Booking Agent for reservations (Medium)
+2. Create Price Negotiation Agent for alternatives (Advanced)
+3. Build Analytics Agent for market insights (Hard)
+4. Implement Multi-Modal Agent with image analysis (Very Advanced)
+
+**Deliverable**: Production-ready multi-agent chat system with coordinated workflows
 
 ---
 
@@ -198,18 +295,45 @@ See the main [README.md](../README.md) for local setup instructions.
 - Verify your OpenAI API key is set correctly
 
 ### ⚡ Time Management
-- **Module 0**: 5-10 minutes
-- **Module 1**: 20-25 minutes
-- **Module 2**: 20-25 minutes
-- **Module 3**: 20-25 minutes
-- **Buffer**: 10 minutes for questions/troubleshooting
+
+**Total Workshop Time**: 1-1.5 hours
+
+| Activity | Time | Notes |
+|----------|------|-------|
+| Module 0 (Setup) | 5-10 min | Can be done pre-workshop |
+| Module 1 (Vector Search) | 20-25 min | Includes hands-on coding |
+| Module 2 (RAG) | 20-25 min | Includes hands-on coding |
+| Module 3 (Multi-Agent) | 25-30 min | Advanced concepts |
+| Q&A / Troubleshooting | 10-15 min | Throughout workshop |
+
+**Pacing Tips**:
+- Complete Module 0 before the workshop starts
+- Focus on understanding concepts, not rushing
+- Challenges are optional (do them after if time is tight)
+- Use the completed branch as reference, not a crutch
 
 ### 🎯 Success Criteria
-By the end, you should be able to:
-- ✅ Search for listings using natural language
-- ✅ Get contextually relevant recommendations
-- ✅ See results on an interactive map
-- ✅ Understand how agents collaborate
+
+By the end of this workshop, you should be able to:
+
+**Technical Skills**:
+- ✅ Generate and use vector embeddings for semantic search
+- ✅ Create and query DocumentDB vector indexes
+- ✅ Build RAG pipelines with LangChain
+- ✅ Design and orchestrate multi-agent systems with LangGraph
+- ✅ Manage conversation state and memory
+
+**Practical Abilities**:
+- ✅ Search for listings using natural language queries
+- ✅ Get contextually relevant, personalized recommendations
+- ✅ Handle multi-turn conversations with context awareness
+- ✅ Understand how specialized agents collaborate
+
+**Conceptual Understanding**:
+- ✅ Know when to use vector search vs traditional search
+- ✅ Understand RAG pattern benefits and limitations
+- ✅ Design multi-agent architectures for complex workflows
+- ✅ Apply these patterns to your own projects
 
 ---
 
@@ -248,4 +372,20 @@ docker rmi documentdb
 
 ---
 
-**Ready to begin?** Start with [Module 0: Setup & Environment](Module-00.md)
+## Quick Navigation
+
+### 📖 Start Learning
+- **New to the workshop?** → [Module 0: Setup & Environment](Module-00.md)
+- **Environment ready?** → [Module 1: Vector Search Fundamentals](Module-01.md)
+- **Know vector search?** → [Module 2: RAG Pattern Implementation](Module-02.md)
+- **Experienced with RAG?** → [Module 3: Multi-Agent System with LangGraph](Module-03.md)
+
+### 🔗 Quick Links
+- [Main README](../README.md) - Project overview
+- [Requirements](../requirements.txt) - Python dependencies
+- [Devcontainer Config](../.devcontainer/devcontainer.json) - Codespaces setup
+- [GitHub Repository](https://github.com/patty-chow/contoso-bookings)
+
+---
+
+**🚀 Ready to begin?** Start with [Module 0: Setup & Environment](Module-00.md)
