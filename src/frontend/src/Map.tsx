@@ -1,75 +1,62 @@
-import React, { useEffect, useRef } from 'react';
-import * as atlas from 'azure-maps-control';
-import * as spatial from "azure-maps-spatial-io";
-import "azure-maps-control/dist/atlas.min.css";
+import React from 'react';
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import './Map.css';
 
-const azureMapsKey = process.env.REACT_APP_CONTOSO_BOOKINGS_AZURE_MAPS_KEY;
+// Fix for default marker icons in react-leaflet
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+const DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 interface MapProps {
-  user_coordinates: {lat: number; lng: number};
-  search_map_results: { name: String, price:number, similarity_score:number, lat: number; lng: number }[];
+  user_coordinates: { lat: number; lng: number };
+  search_map_results: { name: String; price: number; similarity_score: number; lat: number; lng: number }[];
 }
 
 const Map: React.FC<MapProps> = ({ user_coordinates, search_map_results }) => {
-  const mapRef = useRef<HTMLDivElement>(null);
+  return (
+    <MapContainer
+      center={[user_coordinates.lat, user_coordinates.lng]}
+      zoom={10}
+      style={{ width: '100%', height: '100%' }}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      
+      {/* User location marker */}
+      <CircleMarker
+        center={[user_coordinates.lat, user_coordinates.lng]}
+        radius={10}
+        pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.6 }}
+      >
+        <Popup>Your location</Popup>
+      </CircleMarker>
 
-  useEffect(() => {
-    if (mapRef.current) {
-      const map = new atlas.Map(mapRef.current, {
-        center:  [user_coordinates.lng, user_coordinates.lat],
-        zoom: 10,
-        view: 'Auto',
-        authOptions: {
-          authType: atlas.AuthenticationType.subscriptionKey,
-          subscriptionKey: azureMapsKey as string,
-        },
-      });
-
-      map.events.add("ready", () => {
-
-        // Create a data source and add it to the map.
-        const datasource = new atlas.source.DataSource();
-        map.sources.add(datasource);
-        map.layers.add(new atlas.layer.BubbleLayer(datasource));
-        let point = spatial.io.ogc.WKT.read(`POINT(${user_coordinates.lng}, ${user_coordinates.lat})`);
-    
-        // Add the parsed data to the data source.
-        datasource.add(point);
-
-        if (search_map_results.length === 0) {
-          return;
-        }
-
-        search_map_results.forEach((search_result) => {          
-
-          
-          const marker = new atlas.HtmlMarker({
-            htmlContent: '<div class="pulseIcon"></div>',
-            position: [ search_result.lng, search_result.lat ],
-            popup: new atlas.Popup({
-              content: `<div class="marker-popup">
-                          <h3>${search_result.name}</h3>
-                          <p>Price: ${search_result.price} per day</p>
-                          <p>Similarity Score: ${search_result.similarity_score}</p>
-                        </div>`,
-              pixelOffset: [0, -20],
-            }),
-          });
-
-          map.markers.add(marker);
-
-          map.events.add('click',marker, () => {
-            marker.togglePopup();
-          });
-
-        });
-
-      });
-    }
-  }, [search_map_results, user_coordinates]);
-
-  return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />;
+      {/* Search result markers */}
+      {search_map_results.map((search_result, index) => (
+        <Marker key={index} position={[search_result.lat, search_result.lng]}>
+          <Popup>
+            <div className="marker-popup">
+              <h3>{search_result.name}</h3>
+              <p>Price: ${search_result.price} per day</p>
+              <p>Similarity Score: {search_result.similarity_score}</p>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
+  );
 };
 
 export default Map;
