@@ -77,7 +77,6 @@ DOCUMENTDB_CONNECTION_STRING=mongodb://admin:password123@localhost:10260/?tls=tr
 OPENAI_API_KEY=your-openai-api-key-here
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 OPENAI_CHAT_MODEL=gpt-3.5-turbo
-REACT_APP_CONTOSO_BOOKINGS_AZURE_MAPS_KEY=your-azure-maps-key
 ```
 
 ### 3. Load the data:
@@ -122,7 +121,7 @@ The application will be available at `http://localhost:3000`
   - **Vector Search**: `cosmosSearch` operator with IVF indexing
   - **Geospatial**: MongoDB 2dsphere indexes
   - **Filters**: Compound queries combining vector similarity, location, and amenities
-- **Frontend**: React with Azure Maps integration
+- **Frontend**: React with Leaflet/OpenStreetMap integration
 - **Search Flow**:
   1. User query → OpenAI embedding generation
   2. DocumentDB `cosmosSearch` finds similar listings

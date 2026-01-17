@@ -74,7 +74,7 @@ By the end of this workshop, you'll have created:
 - **LangChain** - RAG patterns and prompt engineering
 - **LangGraph** - Multi-agent orchestration and workflows
 - **FastAPI** - Modern Python web framework
-- **React** - Frontend with Azure Maps integration
+- **React** - Frontend with Leaflet/OpenStreetMap integration
 
 ---
 

@@ -117,7 +117,7 @@ contoso-bookings/
 │       ├── src/
 │       │   ├── App.tsx          # Main app component
 │       │   ├── Chat.tsx         # Chat interface
-│       │   └── Map.tsx          # Azure Maps integration
+│       │   └── Map.tsx          # Leaflet map integration
 │       └── package.json
 ├── contoso-booking.ipynb        # Jupyter notebook for data setup
 ├── contoso_booking.py           # Standalone script version
