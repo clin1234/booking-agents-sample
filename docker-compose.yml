@@ -1,0 +1,68 @@
+# Docker Compose configuration for Contoso Bookings
+# Run with: docker-compose up -d
+
+version: '3.8'
+
+services:
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./src/api
+      dockerfile: Dockerfile
+    container_name: contoso-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DOCUMENTDB_CONNECTION_STRING=mongodb://admin:password123@host.docker.internal:10260/?tls=true&tlsAllowInvalidCertificates=true&authMechanism=SCRAM-SHA-256
+      - DATABASE_NAME=${DATABASE_NAME:-contoso_bookings}
+      - COLLECTION_NAME=${COLLECTION_NAME:-listings}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
+      - OPENAI_CHAT_MODEL=${OPENAI_CHAT_MODEL:-gpt-3.5-turbo}
+    volumes:
+      - ./src/api:/app
+    depends_on:
+      documentdb:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: contoso-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # DocumentDB Database
+  documentdb:
+    image: ghcr.io/documentdb/documentdb/documentdb-local:latest
+    container_name: contoso-documentdb
+    command: --username admin --password password123
+    ports:
+      - "10260:10260"
+    volumes:
+      - documentdb-data:/data/db
+    environment:
+      - DOCUMENTDB_USERNAME=admin
+      - DOCUMENTDB_PASSWORD=password123
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  documentdb-data:

@@ -3,6 +3,9 @@ set -e
 
 echo "🚀 Setting up Contoso Bookings development environment..."
 
+# Fix permissions if needed
+echo "🔧 Configuring environment..."
+
 # Install Python dependencies
 echo "📦 Installing Python dependencies..."
 pip install -r requirements.txt
@@ -26,33 +29,72 @@ if [ ! -f .env ]; then
     echo ""
 fi
 
-# Check if OPENAI_API_KEY is set
-if [ -z "$OPENAI_API_KEY" ]; then
+# If OPENAI_API_KEY is set as environment variable, update .env file
+if [ -n "$OPENAI_API_KEY" ]; then
+    echo "✅ OPENAI_API_KEY is configured (from environment)"
+    # Update .env file with the secret
+    sed -i "s|^OPENAI_API_KEY=.*|OPENAI_API_KEY=$OPENAI_API_KEY|" .env
+else
     echo "⚠️  WARNING: OPENAI_API_KEY is not set!"
     echo "   Set it as a Codespaces secret or in your .env file"
-else
-    echo "✅ OPENAI_API_KEY is configured"
 fi
 
-# Wait for DocumentDB to be ready
+# Wait for DocumentDB to be ready (started via docker run)
+echo "🐳 Starting DocumentDB container..."
+docker pull ghcr.io/documentdb/documentdb/documentdb-local:latest || echo "⚠️  Image pull failed, may already exist"
+docker rm -f documentdb-container 2>/dev/null || true
+docker run -dt -p 10260:10260 --name documentdb-container \
+    ghcr.io/documentdb/documentdb/documentdb-local:latest \
+    --username admin --password password123
+
 echo "⏳ Waiting for DocumentDB to be ready..."
 max_attempts=30
 attempt=0
-until mongosh "mongodb://admin:password123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true" --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+until docker exec documentdb-container mongosh --eval "db.adminCommand('ping')" --quiet > /dev/null 2>&1; do
     attempt=$((attempt + 1))
     if [ $attempt -eq $max_attempts ]; then
         echo "❌ DocumentDB failed to start after $max_attempts attempts"
-        exit 1
+        echo "   You can start it manually later with:"
+        echo "   docker run -dt -p 10260:10260 --name documentdb-container ghcr.io/documentdb/documentdb/documentdb-local:latest --username admin --password password123"
+        break
     fi
     echo "   Attempt $attempt/$max_attempts..."
     sleep 2
 done
 
-echo "✅ DocumentDB is ready!"
+if [ $attempt -lt $max_attempts ]; then
+    echo "✅ DocumentDB is ready!"
+fi
+
+# Create helpful aliases
+echo "📝 Creating helpful bash aliases..."
+cat >> ~/.bashrc << 'EOF'
+
+# Contoso Bookings aliases
+alias workspace='cd /workspaces/contoso-bookings'
+alias start-backend='cd /workspaces/contoso-bookings/src/api && uvicorn main:app --reload --host 0.0.0.0'
+alias start-frontend='cd /workspaces/contoso-bookings/src/frontend && npm start'
+alias start-all='start-backend & start-frontend'
+alias db-connect='docker exec -it documentdb-container mongosh'
+alias db-start='docker start documentdb-container || docker run -dt -p 10260:10260 --name documentdb-container ghcr.io/documentdb/documentdb/documentdb-local:latest --username admin --password password123'
+alias db-stop='docker stop documentdb-container'
+
+EOF
+
 echo ""
-echo "🎉 Setup complete! Next steps:"
+echo "✨ ============================================== ✨"
+echo "   Contoso Bookings Setup Complete! 🎉"
+echo "✨ ============================================== ✨"
+echo ""
+echo "📚 Next Steps:"
+echo ""
 echo "   1. Configure your OPENAI_API_KEY (if not already done)"
 echo "   2. Open contoso-booking.ipynb to load data and create indexes"
-echo "   3. Start the backend: cd src/api && uvicorn main:app --reload"
+echo "   3. Start the backend: cd src/api && uvicorn main:app --reload --host 0.0.0.0"
 echo "   4. Start the frontend: cd src/frontend && npm start"
+echo ""
+echo "💡 Helpful aliases available (run 'source ~/.bashrc' first):"
+echo "   - start-backend  : Start FastAPI backend"
+echo "   - start-frontend : Start React frontend"
+echo "   - db-connect     : Connect to DocumentDB with mongosh"
 echo ""

@@ -35,7 +35,28 @@ The Codespace includes:
 - ✅ DocumentDB VS Code extension
 - ✅ Ports auto-forwarded (3000, 8000, 10260)
 
-### Option 2: Local Development
+### Option 2: Docker Compose (Full Stack)
+
+The easiest way to run the complete application locally:
+
+```bash
+# Quick start (builds and runs everything)
+./scripts/quickstart.sh
+
+# Or use make commands
+make up      # Start all services
+make down    # Stop all services
+make logs    # View logs
+```
+
+This will start:
+- **Frontend**: http://localhost:3000 (React app)
+- **Backend API**: http://localhost:8000/docs (FastAPI with Swagger UI)
+- **DocumentDB**: mongodb://admin:password123@localhost:10260
+
+See `make help` for all available commands.
+
+### Option 3: Local Development (Manual Setup)
 
 ## Prerequisites
 
@@ -73,11 +94,16 @@ cp .env.example .env
 
 Update the `.env` file with your values:
 ```env
-DOCUMENTDB_CONNECTION_STRING=mongodb://admin:password123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true
+DOCUMENTDB_CONNECTION_STRING=mongodb://admin:password123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true&authMechanism=SCRAM-SHA-256
 OPENAI_API_KEY=your-openai-api-key-here
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 OPENAI_CHAT_MODEL=gpt-3.5-turbo
 ```
+
+> **Note on Connection String Hostnames:**
+> - **`localhost`**: Use when running in Codespaces/DevContainer (since `network_mode: service:documentdb` shares the network)
+> - **`host.docker.internal`**: Use when running in a separate Docker container that needs to reach DocumentDB on the host
+> - **`localhost`**: Also works when running the app directly on your machine (not in a container)
 
 ### 3. Load the data:
 
