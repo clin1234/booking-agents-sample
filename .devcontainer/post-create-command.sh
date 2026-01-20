@@ -66,7 +66,7 @@ EOF
 
 echo ""
 echo "✨ ============================================== ✨"
-echo "   Contoso Bookings Setup Complete! 🎉"
+echo "   Setup Complete! 🎉"
 echo "✨ ============================================== ✨"
 echo ""
 echo "📚 Next Steps:"
