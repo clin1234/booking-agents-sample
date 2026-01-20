@@ -1,5 +1,5 @@
 {
-  "name": "Contoso Bookings",
+  "name": "Booking Agents Sample",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
