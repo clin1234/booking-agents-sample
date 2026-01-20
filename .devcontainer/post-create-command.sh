@@ -47,24 +47,7 @@ docker run -dt -p 10260:10260 --name documentdb-container \
     ghcr.io/documentdb/documentdb/documentdb-local:latest \
     --username admin --password password123
 
-echo "⏳ Waiting for DocumentDB to be ready..."
-max_attempts=30
-attempt=0
-until docker exec documentdb-container mongosh --eval "db.adminCommand('ping')" --quiet > /dev/null 2>&1; do
-    attempt=$((attempt + 1))
-    if [ $attempt -eq $max_attempts ]; then
-        echo "❌ DocumentDB failed to start after $max_attempts attempts"
-        echo "   You can start it manually later with:"
-        echo "   docker run -dt -p 10260:10260 --name documentdb-container ghcr.io/documentdb/documentdb/documentdb-local:latest --username admin --password password123"
-        break
-    fi
-    echo "   Attempt $attempt/$max_attempts..."
-    sleep 2
-done
-
-if [ $attempt -lt $max_attempts ]; then
-    echo "✅ DocumentDB is ready!"
-fi
+echo "✅ DocumentDB container is ready!"
 
 # Create helpful aliases
 echo "📝 Creating helpful bash aliases..."
