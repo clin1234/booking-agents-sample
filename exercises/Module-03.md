@@ -1,7 +1,6 @@
 # Module 3: Multi-Agent System with LangGraph
 
-**Duration:** 25-30 minutes  
-**Level:** Advanced
+### 📓 **[Open the Jupyter Notebook](../notebooks/module-03.ipynb)** to follow along with the code exercises.
 
 ## 📋 Learning Objectives
 

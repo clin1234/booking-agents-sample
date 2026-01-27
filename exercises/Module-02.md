@@ -1,5 +1,7 @@
 # Module 2: RAG Pattern Implementation
 
+### 📓 **[Open the Jupyter Notebook](../notebooks/module-02.ipynb)** to follow along with the code exercises.
+
 ## 📋 Learning Objectives
 
 By the end of this module, you will:

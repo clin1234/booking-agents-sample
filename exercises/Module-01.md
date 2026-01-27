@@ -1,8 +1,6 @@
 # Module 1: Vector Search Fundamentals
 
-
 ### 📓 **[Open the Jupyter Notebook](../notebooks/module-01.ipynb)** to follow along with the code exercises.
-
 
 ## 📋 Learning Objectives
 
