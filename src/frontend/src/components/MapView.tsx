@@ -1,30 +1,26 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { SearchResult } from '../types';
 import './MapView.css';
 
-// Fix default marker icon issue with webpack
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+// Fix default marker icon issue with webpack/CRA
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
 
-// Custom marker icons
-const defaultIcon = new L.Icon({
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+const DefaultIcon = L.icon({
+  iconUrl: icon,
+  iconRetinaUrl: iconRetina,
+  shadowUrl: iconShadow,
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
 });
 
-const selectedIcon = new L.Icon({
+const SelectedIcon = L.icon({
   iconUrl: 'data:image/svg+xml;base64,' + btoa(`
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="30" height="45">
       <path fill="#0078d4" stroke="#fff" stroke-width="1" d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24c0-6.6-5.4-12-12-12z"/>
@@ -35,6 +31,8 @@ const selectedIcon = new L.Icon({
   iconAnchor: [15, 45],
   popupAnchor: [0, -40],
 });
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 interface MapViewProps {
   listings: SearchResult[];
@@ -53,7 +51,7 @@ const MapUpdater: React.FC<{ listings: SearchResult[]; center?: { lat: number; l
   useEffect(() => {
     if (listings.length > 0) {
       const bounds = L.latLngBounds(
-        listings.map(l => [l.lat, l.lng] as [number, number])
+        listings.map(l => [l.lat, l.lng] as L.LatLngExpression)
       );
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
     } else if (center) {
@@ -95,13 +93,13 @@ export const MapView: React.FC<MapViewProps> = ({
         {listings.map((listing) => (
           <Marker
             key={listing.id}
-            position={[listing.lat, listing.lng]}
-            icon={listing.id === selectedId ? selectedIcon : defaultIcon}
+            position={[listing.lat, listing.lng] as L.LatLngExpression}
+            icon={listing.id === selectedId ? SelectedIcon : DefaultIcon}
             eventHandlers={{
               click: () => onSelectListing(listing),
             }}
           >
-            <Popup className="listing-popup">
+            <Popup>
               <div className="popup-content">
                 <h4>{listing.name}</h4>
                 <p className="popup-price">{formatPrice(listing.price)}/night</p>
