@@ -1,8 +1,5 @@
 # Module 2: RAG Pattern Implementation
 
-**Duration:** 20-25 minutes  
-**Level:** Intermediate
-
 ## 📋 Learning Objectives
 
 By the end of this module, you will:

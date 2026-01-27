@@ -38,7 +38,7 @@ This workshop is designed to run entirely in **GitHub Codespaces**, providing a 
    
    Alternatively, click this badge:
    
-   [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/documentdb/booking-agents-sample/tree/completed)
+   [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/documentdb/booking-agents-sample/tree/workshop)
 
 3. **Wait for the environment to build** (first launch takes 2-3 minutes):
    - Python 3.11 environment
