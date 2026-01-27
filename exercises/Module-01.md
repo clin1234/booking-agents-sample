@@ -1,7 +1,7 @@
 # Module 1: Vector Search Fundamentals
 
 
-### 📓 **[Open the Jupyter Notebook](../module-01.ipynb)** to follow along with the code exercises.
+### 📓 **[Open the Jupyter Notebook](../notebooks/module-01.ipynb)** to follow along with the code exercises.
 
 
 ## 📋 Learning Objectives
@@ -345,10 +345,6 @@ db.listings.getIndexes()
 | `similarity` | `"COS"` | Cosine similarity (range: 0 to 1, where 1 = identical) |
 | `dimensions` | `1536` | Must match your embedding size (OpenAI text-embedding-3-small) |
 
-## 🛠️ Step 7: Create Vector Search Index
-
-### Understanding DocumentDB Vector Indexes
-
 DocumentDB supports native vector search with two index types:
 
 1. **IVF (Inverted File Index)**: Fast, approximate search suitable for large datasets
@@ -356,78 +352,7 @@ DocumentDB supports native vector search with two index types:
 
 For this workshop, we'll use **IVF** for better performance with our dataset.
 
-### Create the Vector Index
-
-```python
-def create_vector_index():
-    """
-    Create a vector search index on the descriptionVector field.
-    Uses IVF (Inverted File Index) for efficient approximate search.
-    """
-    try:
-        # Drop existing vector index if it exists
-        try:
-            collection.drop_index("vectorSearchIndex")
-            print("🗑️ Dropped existing vector index")
-        except:
-            pass  # Index doesn't exist yet
-        
-        # Create vector search index
-        collection.create_index(
-            [("_descriptionVector_", "cosmosSearch")],
-            name="vectorSearchIndex",
-            cosmosSearchOptions={
-                "kind": "vector-ivf",
-                "numLists": 100,  # Number of clusters for IVF
-                "similarity": "COS",  # Cosine similarity
-                "dimensions": 1536  # Must match embedding dimensions
-            }
-        )
-        print("✅ Created vector search index (IVF)")
-        
-        # Also create indexes for filtering
-        collection.create_index([("address.market", 1)])
-        collection.create_index([("property_type", 1)])
-        collection.create_index([("bedrooms", 1)])
-        collection.create_index([("price", 1)])
-        print("✅ Created filter indexes")
-        
-    except Exception as e:
-        print(f"❌ Error creating indexes: {e}")
-        raise
-
-# Create the indexes
-create_vector_index()
-
-# Verify indexes
-indexes = list(collection.list_indexes())
-print(f"\n📋 Current indexes:")
-for idx in indexes:
-    print(f"  - {idx['name']}: {idx['key']}")
-```
-
-**Expected Output:**
-```
-✅ Created vector search index (IVF)
-✅ Created filter indexes
-
-📋 Current indexes:
-  - _id_: [('_id', 1)]
-  - vectorSearchIndex: [('descriptionVector', 'cosmosSearch')]
-  - address.market_1: [('address.market', 1)]
-  - property_type_1: [('property_type', 1)]
-  - bedrooms_1: [('bedrooms', 1)]
-  - price_1: [('price', 1)]
-```
-
-### 💡 Understanding Index Parameters
-
-- **kind**: `"vector-ivf"` uses Inverted File Index for speed
-- **numLists**: Controls the speed/accuracy tradeoff (higher = more accurate, slower)
-- **similarity**: `"COS"` for cosine similarity (range: -1 to 1, where 1 = identical)
-- **dimensions**: Must match the embedding size (1536 for text-embedding-3-small)
-
-## 🛠️ Step 8: Implement Semantic Search
+## 🛠️ Step 7: Implement Semantic Search
 
 ### Basic Vector Search
 
@@ -526,7 +451,7 @@ for idx, result in enumerate(results, 1):
 - Scores between 0.5-0.75 are moderately relevant
 - Scores below 0.5 may be weak matches
 
-## 🛠️ Step 9: Add Filters to Refine Search
+## 🛠️ Step 8: Add Filters to Refine Search
 
 ### Search with Filters
 
@@ -635,7 +560,7 @@ for idx, result in enumerate(results, 1):
     print()
 ```
 
-## 🛠️ Step 10: Experiment with Different Queries
+## 🛠️ Step 9: Experiment with Different Queries
 
 Try these queries to see how semantic search works:
 
