@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Setting up Contoso Bookings development environment..."
+echo "🚀 Setting up development environment..."
 
 # Fix permissions if needed
 echo "🔧 Configuring environment..."
