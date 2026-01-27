@@ -292,9 +292,10 @@ Now that your data with embeddings is loaded in DocumentDB, you need to create a
 
 ```javascript
 // Create vector search index on the descriptionVector field
-db.listings.createIndex(
-    { "descriptionVector": "cosmosSearch" },
-    {
+db.runCommand({
+    createIndexes: "listings",
+    indexes: [{
+        key: { "descriptionVector": "cosmosSearch" },
         name: "vectorSearchIndex",
         cosmosSearchOptions: {
             kind: "vector-ivf",
@@ -302,8 +303,8 @@ db.listings.createIndex(
             similarity: "COS",
             dimensions: 1536
         }
-    }
-)
+    }]
+})
 ```
 
 4. **Create filter indexes** for better query performance:
