@@ -1,8 +1,7 @@
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 import os
 import openai 
 import cosmosdb
-from langchain.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from typing import List
 from bson import ObjectId
