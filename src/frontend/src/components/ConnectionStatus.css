@@ -1,0 +1,53 @@
+.connection-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.connection-status.connected .status-dot {
+  background: #4caf50;
+  box-shadow: 0 0 6px #4caf50;
+}
+
+.connection-status.disconnected .status-dot {
+  background: #ff9800;
+  box-shadow: 0 0 6px #ff9800;
+}
+
+.connection-status.checking .status-dot {
+  background: #2196f3;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.retry-button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.retry-button:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}

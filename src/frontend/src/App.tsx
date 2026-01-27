@@ -1,62 +1,143 @@
-import React, {useState} from 'react';
-import Chat from './Chat';
-import Map from './Map';
-import LocationModal from './LocationPromptModal';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Header } from './components/Header';
+import { SetupGuide } from './components/SetupGuide';
+import { MapView } from './components/MapView';
+import { ListingsPanel } from './components/ListingsPanel';
+import { ChatPanel } from './components/ChatPanel';
+import { useBackendStatus } from './hooks/useBackendStatus';
+import { useDemoData } from './hooks/useDemoData';
+import { SearchResult } from './types';
 import './App.css';
-import { FluentProvider, teamsLightTheme } from '@fluentui/react-components';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 const App: React.FC = () => {
-  const [coordinates, setUserCoordinates] = useState<{ lat: number; lng: number }>();
-  const [coordinates_collection, setSearchResults] = useState<{ name: String, price:number, similarity_score:number , lat: number; lng: number }[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const { isConnected, isChecking, refetch } = useBackendStatus();
+  const { searchListings, getSearchResults, isLoading: isDemoLoading } = useDemoData();
+  
+  const [showSetupGuide, setShowSetupGuide] = useState(true);
+  const [listings, setListings] = useState<SearchResult[]>([]);
+  const [selectedListingId, setSelectedListingId] = useState<string | undefined>();
+  const [isSearching, setIsSearching] = useState(false);
+  const [userLocation] = useState({ lat: 39.7392, lng: -104.9903 }); // Denver
 
-  const handleLocationSubmit = async (location: string) => {
+  const isDemo = !isConnected;
+
+  // Show some demo listings initially when in demo mode
+  useEffect(() => {
+    if (isDemo && !isDemoLoading && listings.length === 0) {
+      const demoListings = getSearchResults(5);
+      setListings(demoListings);
+    }
+  }, [isDemo, isDemoLoading, listings.length, getSearchResults]);
+
+  // Backend search function
+  const handleBackendSearch = useCallback(async (query: string): Promise<{ message: string; listings: SearchResult[] }> => {
+    setIsSearching(true);
     try {
-      const response = await fetch('http://localhost:8000/get_location', {
+      const response = await fetch(`${API_BASE_URL}/query_message`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ city_name: location }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: query, amenities: [] }),
       });
-      
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+
+      if (!response.ok) throw new Error('Search failed');
 
       const data = await response.json();
-      const newCoordinates = {
-        lat: data.latitude,
-        lng: data.longitude,
-      };
+      
+      const searchResults: SearchResult[] = data.listings?.map((listing: any) => ({
+        id: listing._id || listing.id || String(Math.random()),
+        name: listing.name,
+        price: typeof listing.price === 'number' ? listing.price : parseFloat(listing.price?.replace(/[$,]/g, '') || '0'),
+        lat: listing.location?.coordinates?.[1] || listing.latitude,
+        lng: listing.location?.coordinates?.[0] || listing.longitude,
+        property_type: listing.property_type,
+        bedrooms: listing.bedrooms,
+        similarity_score: listing.similarity_score,
+        description: listing.description,
+      })) || [];
 
-      setUserCoordinates(newCoordinates);
+      setListings(searchResults);
+      return { message: data.message, listings: searchResults };
     } catch (error) {
-      console.error('Error fetching location:', error);
+      console.error('Backend search error:', error);
+      throw error;
+    } finally {
+      setIsSearching(false);
     }
-  };
+  }, []);
+
+  // Demo search function
+  const handleDemoSearch = useCallback((query: string): { message: string; listings: SearchResult[] } => {
+    const results = searchListings(query, 5);
+    setListings(results);
+    
+    const demoMessages = [
+      `I found ${results.length} listings that might match "${query}"! These results are from demo data - complete Module 2 to enable AI-powered responses.`,
+      `Here are ${results.length} properties related to "${query}". Note: This is demo mode. The real AI will provide personalized recommendations!`,
+      `Looking for "${query}"? I found ${results.length} options! Complete the workshop to unlock intelligent search and chat.`,
+    ];
+    
+    return {
+      message: demoMessages[Math.floor(Math.random() * demoMessages.length)],
+      listings: results,
+    };
+  }, [searchListings]);
+
+  const handleSelectListing = useCallback((listing: SearchResult) => {
+    setSelectedListingId(listing.id);
+  }, []);
 
   return (
-    <FluentProvider theme={teamsLightTheme}>
-      <header className='header'>
-        <div className="header-content">
-          <img src="/Azure-Cosmos-DB.svg" alt="Logo" className="header-logo" />
-        <h1>Contoso Bookings</h1>
+    <div className="app">
+      <Header
+        isConnected={isConnected}
+        isChecking={isChecking}
+        isDemo={isDemo}
+        onRetryConnection={refetch}
+      />
+
+      <main className="app-main">
+        <div className="app-layout">
+          {/* Map Section */}
+          <section className="map-section">
+            <MapView
+              listings={listings}
+              selectedId={selectedListingId}
+              onSelectListing={handleSelectListing}
+              center={userLocation}
+            />
+          </section>
+
+          {/* Listings Section */}
+          <section className="listings-section">
+            <ListingsPanel
+              listings={listings}
+              selectedId={selectedListingId}
+              onSelectListing={handleSelectListing}
+              isLoading={isSearching}
+              isDemo={isDemo}
+            />
+          </section>
+
+          {/* Chat Section */}
+          <section className="chat-section">
+            <ChatPanel
+              isBackendConnected={isConnected}
+              isDemo={isDemo}
+              onSearch={handleBackendSearch}
+              onDemoSearch={handleDemoSearch}
+            />
+          </section>
         </div>
-      </header>
-      <div className='App'>
-      <Map 
-        user_coordinates={coordinates || { lat: 0, lng: 0 }} 
-        search_map_results={coordinates_collection || []} 
+      </main>
+
+      {/* Setup Guide Modal - shown when backend not connected */}
+      <SetupGuide
+        isVisible={showSetupGuide && isDemo && !isChecking}
+        onDismiss={() => setShowSetupGuide(false)}
       />
-      <Chat setSearchResults={setSearchResults} />
-      <LocationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleLocationSubmit}
-      />
-      </div>
-    </FluentProvider>
+    </div>
   );
 };
 

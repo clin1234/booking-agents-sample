@@ -1,11 +1,8 @@
 {
   "name": "frontend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "dependencies": {
-    "@fluentui/react-components": "^9.56.1",
-    "@fluentui/web-components": "^2.6.1",
-    "@microsoft/fast-react-wrapper": "^0.3.25",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -20,14 +17,14 @@
     "react-leaflet": "^4.2.1",
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5",
-    "uuid": "^11.0.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "EXTEND_ESLINT=true react-scripts start",
-    "build": "EXTEND_ESLINT=true react-scripts build",
-    "test": "EXTEND_ESLINT=true react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "copy-data": "cp ../../data/embedded_data.json public/embedded_data.json"
   },
   "eslintConfig": {
     "extends": [
@@ -49,9 +46,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "css-loader": "^7.1.2",
-    "style-loader": "^4.0.0"
   }
 }

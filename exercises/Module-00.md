@@ -187,7 +187,11 @@ Run this Python snippet to test:
 ```bash
 python -c "import os; from dotenv import load_dotenv; load_dotenv(); print('✅ API key configured' if os.getenv('OPENAI_API_KEY') else '❌ API key missing')"
 ```
-
+## Step 4: Launch frontend and backend
+To launch frontend:
+cd src/frontend
+npm install
+npm start
 ---
 
 ## ✅ Verification Checklist
