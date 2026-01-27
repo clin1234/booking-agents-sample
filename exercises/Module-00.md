@@ -147,7 +147,7 @@ The workshop includes a JSON file with sample data that already contains vector 
    - Click **"Open"**
    - Wait for the import confirmation message
 
-> 💡 **Note:** This file contains pre-generated vector embeddings, so you can steps 1-5 in Module 1!
+> 💡 **Note:** This file contains pre-generated vector embeddings, so you can steps 3-5 in Module 1!
 
 
 ---
