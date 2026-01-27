@@ -1,10 +1,5 @@
 # Module 0: Setup & Environment
 
-**Duration**: 5-10 minutes  
-**Objective**: Verify your development environment and get familiar with the project structure
-
----
-
 ## 🎯 Learning Objectives
 
 By the end of this module, you will:
@@ -22,7 +17,6 @@ Before starting, ensure you have:
 - [ ] GitHub account
 - [ ] OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
 - [ ] Codespace created from this repository
-- [ ] Switched to the `workshop` branch
 
 ---
 
@@ -32,13 +26,6 @@ This workshop is designed to run entirely in **GitHub Codespaces**, providing a 
 
 > 💡 **Why Codespaces?** No local setup required, consistent environment for everyone, and automatic dependency installation.
 
-### Prerequisites
-
-- **GitHub account** - [Sign up for free](https://github.com/signup) if you don't have one
-- **Web browser** - Chrome, Firefox, Safari, or Edge (latest version recommended)
-
-That's it! Everything else is handled by Codespaces.
-
 ### Launch Your Codespace
 
 1. **Navigate to the repository**:
@@ -47,11 +34,11 @@ That's it! Everything else is handled by Codespaces.
 2. **Open in GitHub Codespaces**:
    - Click the green **"Code"** button
    - Select the **"Codespaces"** tab
-   - Click **"Create codespace on workshop"**
+   - Click **"Create codespace on completed"**
    
    Alternatively, click this badge:
    
-   [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/documentdb/fast-api-sample/tree/workshop)
+   [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/documentdb/booking-agents-sample/tree/completed)
 
 3. **Wait for the environment to build** (first launch takes 2-3 minutes):
    - Python 3.11 environment
@@ -130,9 +117,9 @@ Now that DocumentDB is running and connected, let's load sample data to work wit
 
 ### Understanding the Sample Data
 
-The workshop includes a JSON file with sample data:
+The workshop includes a JSON file with sample data that already contains vector embeddings:
 
-- `data/json/combined_listings.json` - Combined Airbnb listings from multiple states
+- `data/embedded_data.json` - Combined Airbnb listings with pre-generated embeddings
 
 ### Load Data Using DocumentDB Extension
 
@@ -156,26 +143,11 @@ The workshop includes a JSON file with sample data:
 4. **Import customer data**:
    - Right-click on the `listings` collection
    - Select **"Import Documents"**
-   - Navigate to: `data/json/combined_listings.json`
+   - Navigate to: `data/embedded_data.json`
    - Click **"Open"**
    - Wait for the import confirmation message
 
-### Verify the Data
-
-1. **View the imported data**:
-   - Expand the collection
-   - Click on a collection to view documents
-   - You should see the imported documents listed
-
-2. **Explore a document**:
-   - Click on any document to view its contents
-   - Notice the structure matches the Beanie models
-   - Each document has an automatically generated `_id` field
-
-3. **Check document counts**:
-   - Right-click on each collection
-   - Select **"View Collection Statistics"** (if available)
-   - Or simply count the visible documents
+> 💡 **Note:** This file contains pre-generated vector embeddings, so you can steps 1-5 in Module 1!
 
 
 ---
@@ -218,186 +190,7 @@ python -c "import os; from dotenv import load_dotenv; load_dotenv(); print('✅ 
 
 ---
 
-## 📁 Step 4: Understand the Project Structure
-
-Let's explore the codebase:
-
-```
-contoso-bookings/
-├── .devcontainer/               # Codespaces configuration
-│   ├── devcontainer.json        # Container settings
-│   ├── docker-compose.yml       # DocumentDB service
-│   └── post-create-command.sh   # Setup script
-├── data/                        # Airbnb listing datasets
-│   ├── csv/                     # Raw CSV files by state
-│   ├── datasets without embeddings/  # JSON datasets
-│   └── json/                    # Processed data
-├── exercises/                   # Workshop modules (you are here!)
-│   ├── Home.md                  # Workshop introduction
-│   └── Module-00.md             # This file
-├── src/
-│   ├── api/                     # FastAPI backend
-│   │   ├── main.py              # API endpoints
-│   │   ├── chat.py              # RAG implementation
-│   │   ├── cosmosdb.py          # Database operations
-│   │   └── geolocation.py       # Location services
-│   └── frontend/                # React application
-│       ├── src/
-│       │   ├── App.tsx          # Main app component
-│       │   ├── Chat.tsx         # Chat interface
-│       │   └── Map.tsx          # Leaflet map integration
-│       └── package.json
-├── contoso-booking.ipynb        # Jupyter notebook for data setup
-├── contoso_booking.py           # Standalone script version
-├── requirements.txt             # Python dependencies
-└── README.md                    # Project documentation
-```
-
-### Key Files You'll Modify
-
-During the workshop, you'll work primarily with:
-- **Module 1**: `contoso_booking.py` - Data loading and vector search
-- **Module 2**: `src/api/chat.py` - RAG implementation
-- **Module 3**: Create new files for multi-agent system
-
----
-
-## 🗄️ Step 5: Verify DocumentDB Connection
-
-DocumentDB is running in a separate container. Let's verify the connection.
-
-### Test Connection with mongosh
-
-```bash
-mongosh "mongodb://admin:password123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true" --eval "db.adminCommand('ping')"
-```
-
-You should see:
-```json
-{ "ok": 1 }
-```
-
-### Test with Python
-
-Create a test file or run in terminal:
-
-```python
-from pymongo import MongoClient
-
-client = MongoClient('mongodb://admin:password123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true')
-print(f"Connected! Databases: {client.list_database_names()}")
-```
-
-### Use the DocumentDB Extension
-
-1. Open VS Code Extensions sidebar (Ctrl+Shift+X)
-2. Find "DocumentDB" extension (should be pre-installed)
-3. Click the DocumentDB icon in the activity bar
-4. Add connection: `mongodb://admin:password123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true`
-5. Browse databases and collections
-
----
-
-## 📊 Step 6: Explore the Dataset
-
-Let's look at the data you'll be working with.
-
-### Dataset Overview
-
-The `data/` folder contains Airbnb listings from 5 US states:
-
-| State | City Focus | Records |
-|-------|-----------|---------|
-| CO | Denver, Boulder (Mountain) | ~7,000 |
-| IL | Chicago (Urban) | ~7,000 |
-| MA | Boston (Historic) | ~7,000 |
-| OH | Cleveland, Columbus (Mixed) | ~7,000 |
-| TX | Austin, Dallas, Houston (Diverse) | ~7,000 |
-
-**Total**: ~35,000 listings
-
-### Sample Record Structure
-
-Open `data/datasets without embeddings/small_for_testing.json` to see a sample:
-
-```json
-{
-  "_id": "123456",
-  "name": "Cozy Mountain Cabin near Downtown",
-  "description": "Peaceful retreat with mountain views...",
-  "neighborhood_overview": "Quiet area close to hiking trails...",
-  "location": {
-    "type": "Point",
-    "coordinates": [-105.0021, 39.7664]  // [longitude, latitude]
-  },
-  "amenities": ["WiFi", "Hot tub", "Kitchen", "Fireplace"],
-  "price": 150,
-  "beds": 2,
-  "bedrooms": 1,
-  "bathrooms": 1,
-  "property_type": "Entire cabin",
-  "room_type": "Entire home/apt",
-  "host_about": "Outdoor enthusiast and local guide..."
-}
-```
-
-### Data Files
-
-- **small_for_testing.json**: 100 records for quick testing
-- **large_35K.json**: Full dataset (35K records)
-- **CSV files**: Original raw data by state
-
----
-
-## 🏗️ Step 7: Architecture Overview
-
-Here's how the components work together:
-
-```
-User Query: "Find a quiet cabin with a hot tub near Denver"
-     │
-     ▼
-┌─────────────────────────────────────────────────────┐
-│  Frontend (React)                                   │
-│  • Chat interface captures query                   │
-│  • Map displays results                            │
-└──────────────────────┬──────────────────────────────┘
-                       │ HTTP POST /query_message
-                       ▼
-┌─────────────────────────────────────────────────────┐
-│  Backend (FastAPI)                                  │
-│  • Receives query and user location               │
-│  • Coordinates agent workflow                      │
-└──────────────────────┬──────────────────────────────┘
-                       │
-        ┌──────────────┼──────────────┐
-        ▼              ▼              ▼
-   ┌─────────┐   ┌─────────┐   ┌──────────────┐
-   │ Search  │   │ Filter  │   │Recommendation│
-   │ Agent   │   │ Agent   │   │   Agent      │
-   └────┬────┘   └────┬────┘   └──────┬───────┘
-        │ 1. Generate │ 2. Apply │ 3. Rank &
-        │ embedding   │ filters  │ recommend
-        └─────────────┼──────────┴───────┘
-                      ▼
-┌─────────────────────────────────────────────────────┐
-│  DocumentDB                                         │
-│  • Vector search (cosmosSearch) finds similar items│
-│  • Geospatial filter (within radius)               │
-│  • Amenity filter (has hot tub)                    │
-└──────────────────────┬──────────────────────────────┘
-                       │ Returns top 5 matches
-                       ▼
-┌─────────────────────────────────────────────────────┐
-│  OpenAI API                                         │
-│  • Creates embeddings for semantic search          │
-│  • Generates natural language responses            │
-└─────────────────────────────────────────────────────┘
-```
-
----
-
-## ✅ Step 8: Verification Checklist
+## ✅ Verification Checklist
 
 Before moving to Module 1, verify:
 

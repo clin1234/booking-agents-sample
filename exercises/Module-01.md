@@ -1,7 +1,8 @@
 # Module 1: Vector Search Fundamentals
 
-**Duration:** 20-25 minutes  
-**Level:** Intermediate
+
+### 📓 **[Open the Jupyter Notebook](../module-01.ipynb)** to follow along with the code exercises.
+
 
 ## 📋 Learning Objectives
 
@@ -51,12 +52,12 @@ You'll implement a semantic search system that allows users to search for Airbnb
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  1. Load Data          2. Generate         3. Store & Index    │
-│  ┌─────────┐          ┌──────────┐        ┌────────────────┐  │
-│  │ JSON    │          │ OpenAI   │        │  DocumentDB    │  │
-│  │ Files   │─────────▶│ Embedding│───────▶│  + Vector      │  │
-│  │ (35K    │          │ API      │        │    Index       │  │
-│  │ listings)│          │(1536-dim)│        │  (cosmosSearch)│  │
-│  └─────────┘          └──────────┘        └────────────────┘  │
+│  ┌─────────┐           ┌──────────┐        ┌────────────────┐  │
+│  │ JSON    │           │ OpenAI   │        │  DocumentDB    │  │
+│  │ File    │─────────▶│ Embedding│───────▶│  + Vector      │  │
+│  │         │           │ API      │        │    Index       │  │
+│  │         │           │(1536-dim)│        │  (cosmosSearch)│  │
+│  └─────────┘           └──────────┘        └────────────────┘  │
 │                                                     │           │
 │                                                     │           │
 │  4. Search Query                                    ▼           │
@@ -102,49 +103,33 @@ Our dataset contains Airbnb listings with the following key fields:
 | `address.country` | string | Country code | `"United States"` |
 | `address.market` | string | City/Market | `"Chicago"` |
 
-### Examine the Data
+### Import required libraries
 
 ```python
+import os
 import json
+from pymongo import MongoClient
+from openai import OpenAI
+from dotenv import load_dotenv
 
-# Load a small sample to examine
-with open('data/datasets without embeddings/small_for_testing.json', 'r') as f:
-    data = json.load(f)
+# Load environment variables
+load_dotenv(override=True)
 
-# Look at the first listing
-sample = data[0]
-print(f"Listing ID: {sample['_id']}")
-print(f"Name: {sample['name']}")
-print(f"Property Type: {sample['property_type']}")
-print(f"Bedrooms: {sample.get('bedrooms', 'N/A')}")
-print(f"Price: ${sample.get('price', 'N/A')}")
-print(f"Amenities: {', '.join(sample.get('amenities', [])[:5])}...")
-print(f"\nDescription Preview:")
-print(sample.get('description', '')[:200] + "...")
+# Initialize OpenAI client
+openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+print("✅ Libraries imported and environment loaded")
 ```
 
 **💡 Key Insight:** The `description` field is what we'll convert into vector embeddings for semantic search.
 
 ## 🛠️ Step 2: Set Up Environment & Connect to DocumentDB
 
-### Import Required Libraries
-
 ```python
-import os
-from pymongo import MongoClient
-from openai import OpenAI
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
-
-# Initialize OpenAI client
-openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-
 # Connect to DocumentDB
 DOCUMENTDB_CONNECTION_STRING = os.getenv('DOCUMENTDB_CONNECTION_STRING')
 client = MongoClient(DOCUMENTDB_CONNECTION_STRING)
-db = client['contoso_bookings']
+db = client['db']
 collection = db['listings']
 
 print("✅ Connected to DocumentDB")
@@ -162,9 +147,34 @@ else:
     print("⚠️ No documents found. We'll load data next.")
 ```
 
-## 🛠️ Step 3: Generate Vector Embeddings
+## 🛠️ Step 3: Load and Examine Sample Data
 
 ### Create an Embedding Function
+
+```python
+# Load a small sample to examine
+with open('data/raw_data.json', 'r') as f:
+    data = json.load(f)
+
+# Look at the first listing
+sample = data[0]
+print(f"Listing ID: {sample['id']}")
+print(f"Name: {sample['name']}")
+print(f"Property Type: {sample['property_type']}")
+print(f"Bedrooms: {sample.get('bedrooms', 'N/A')}")
+print(f"Price: ${sample.get('price', 'N/A')}")
+print(f"Amenities: {', '.join(sample.get('amenities', [])[:5])}...")
+print(f"\nDescription Preview:")
+print(sample.get('description', '')[:200] + "...")
+```
+
+## 🛠️ Step 4: Create Embedding Generation Function
+
+We'll use OpenAI's `text-embedding-3-small` model to generate 1536-dimension vectors that capture semantic meaning.
+
+### 💡 Understanding the Embedding
+
+Each number in the 1536-dimension vector represents a learned feature. The model has discovered that certain combinations of these numbers correspond to semantic concepts like "cozy", "parking", "downtown", etc.
 
 ```python
 def generate_embedding(text):
@@ -200,21 +210,9 @@ print(f"📊 First 5 values: {test_embedding[:5]}")
 print(f"📊 Data type: {type(test_embedding[0])}")
 ```
 
-**Expected Output:**
-```
-✅ Generated embedding
-📏 Dimensions: 1536
-📊 First 5 values: [0.0234, -0.0456, 0.0123, 0.0567, -0.0234]
-📊 Data type: <class 'float'>
-```
+## 🛠️ Step 5: Load Data with Embeddings
 
-### 💡 Understanding the Embedding
-
-Each number in the 1536-dimension vector represents a learned feature. The model has discovered that certain combinations of these numbers correspond to semantic concepts like "cozy", "parking", "downtown", etc.
-
-## 🛠️ Step 4: Load and Prepare Data
-
-### Load Data with Embeddings
+We'll use OpenAI's `text-embedding-3-small` model to generate 1536-dimension vectors that capture semantic meaning.
 
 ```python
 def load_data_with_embeddings(file_path, limit=None):
@@ -257,52 +255,105 @@ def load_data_with_embeddings(file_path, limit=None):
     
     print(f"✅ Generated embeddings for {len(documents_with_embeddings)} documents")
     return documents_with_embeddings
-
-# Start with a small dataset for testing
+```
+```python
+# Start with a small dataset for testing (50 documents)
 documents = load_data_with_embeddings(
-    'data/datasets without embeddings/small_for_testing.json',
-    limit=50  # Start with 50 for quick testing
+    'data/raw_data.json',
+    limit=50
+)
+```
+```python
+# Show one document from the documents list
+print(f"📄 Sample document with new embeddings:\n")
+sample_doc = documents[0]
+print(f"ID: {sample_doc.get('id')}")
+print(f"Name: {sample_doc.get('name')}")
+print(f"Property Type: {sample_doc.get('property_type')}")
+print(f"Bedrooms: {sample_doc.get('bedrooms', 'N/A')}")
+print(f"Price: ${sample_doc.get('price', 'N/A')}")
+print(f"Has embedding: {'descriptionVector' in sample_doc}")
+print(f"Embedding dimensions: {len(sample_doc.get('descriptionVector', []))}")
+```
+
+## 🛠️ Step 6: Create Vector Index Using the DocumentDB for VS Code Extension
+
+Now that your data with embeddings is loaded in DocumentDB, you need to create a **vector search index** to enable fast similarity searches.
+
+### Instructions:
+
+1. **Open the DocumentDB Extension** in VS Code (click the database icon in the sidebar)
+
+2. **Navigate to your Scrapbook**:
+   - Right-click on your connection
+   - Select **"New Scrapbook"** (or open an existing `.mongodb` scrapbook file)
+
+3. **Run the following commands** in your scrapbook (select each block and press `Ctrl+Enter` or click "Run"):
+
+```javascript
+// Create vector search index on the descriptionVector field
+db.listings.createIndex(
+    { "descriptionVector": "cosmosSearch" },
+    {
+        name: "vectorSearchIndex",
+        cosmosSearchOptions: {
+            kind: "vector-ivf",
+            numLists: 100,
+            similarity: "COS",
+            dimensions: 1536
+        }
+    }
 )
 ```
 
-### Insert Data into DocumentDB
+4. **Create filter indexes** for better query performance:
 
-```python
-def insert_documents(documents):
-    """
-    Insert documents into DocumentDB, replacing existing collection.
-    
-    Args:
-        documents (list): List of documents to insert
-    """
-    # Clear existing data (for this workshop)
-    collection.delete_many({})
-    print("🗑️ Cleared existing documents")
-    
-    # Insert new documents
-    if documents:
-        result = collection.insert_many(documents)
-        print(f"✅ Inserted {len(result.inserted_ids)} documents")
-        return result.inserted_ids
-    else:
-        print("⚠️ No documents to insert")
-        return []
-
-# Insert the documents
-inserted_ids = insert_documents(documents)
-print(f"📊 Total documents in collection: {collection.count_documents({})}")
+```javascript
+// Create filter indexes
+db.listings.createIndex({ "address.market": 1 })
+db.listings.createIndex({ "property_type": 1 })
+db.listings.createIndex({ "bedrooms": 1 })
+db.listings.createIndex({ "price": 1 })
 ```
 
-## 🛠️ Step 5: Create Vector Search Index
+5. **Verify the indexes were created**:
+
+```javascript
+// Check all indexes on the collection
+db.listings.getIndexes()
+```
+
+**Expected Output:**
+```json
+[
+  { "name": "_id_", "key": { "_id": 1 } },
+  { "name": "vectorSearchIndex", "key": { "descriptionVector": "cosmosSearch" } },
+  { "name": "address.market_1", "key": { "address.market": 1 } },
+  { "name": "property_type_1", "key": { "property_type": 1 } },
+  { "name": "bedrooms_1", "key": { "bedrooms": 1 } },
+  { "name": "price_1", "key": { "price": 1 } }
+]
+```
+
+### 💡 Understanding Index Parameters
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `kind` | `"vector-ivf"` | Uses Inverted File Index for fast approximate search |
+| `numLists` | `100` | Number of clusters (higher = more accurate but slower) |
+| `similarity` | `"COS"` | Cosine similarity (range: 0 to 1, where 1 = identical) |
+| `dimensions` | `1536` | Must match your embedding size (OpenAI text-embedding-3-small) |
+
+## 🛠️ Step 7: Create Vector Search Index
 
 ### Understanding DocumentDB Vector Indexes
 
-DocumentDB supports native vector search using the `cosmosSearch` operator with two index types:
+DocumentDB supports native vector search with two index types:
 
 1. **IVF (Inverted File Index)**: Fast, approximate search suitable for large datasets
 2. **HNSW (Hierarchical Navigable Small World)**: More accurate but uses more memory
 
-For this workshop, we'll use **IVF** for better performance with our 35K dataset.
+For this workshop, we'll use **IVF** for better performance with our dataset.
 
 ### Create the Vector Index
 
@@ -375,7 +426,7 @@ for idx in indexes:
 - **similarity**: `"COS"` for cosine similarity (range: -1 to 1, where 1 = identical)
 - **dimensions**: Must match the embedding size (1536 for text-embedding-3-small)
 
-## 🛠️ Step 6: Implement Semantic Search
+## 🛠️ Step 8: Implement Semantic Search
 
 ### Basic Vector Search
 
@@ -474,7 +525,7 @@ for idx, result in enumerate(results, 1):
 - Scores between 0.5-0.75 are moderately relevant
 - Scores below 0.5 may be weak matches
 
-## 🛠️ Step 7: Add Filters to Refine Search
+## 🛠️ Step 9: Add Filters to Refine Search
 
 ### Search with Filters
 
@@ -583,7 +634,7 @@ for idx, result in enumerate(results, 1):
     print()
 ```
 
-## 🛠️ Step 8: Experiment with Different Queries
+## 🛠️ Step 10: Experiment with Different Queries
 
 Try these queries to see how semantic search works:
 
