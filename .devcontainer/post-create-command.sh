@@ -6,6 +6,14 @@ echo "🚀 Setting up Contoso Bookings development environment..."
 # Fix permissions if needed
 echo "🔧 Configuring environment..."
 
+# Install MongoDB Shell (mongosh) for DocumentDB extension scrapbooks
+echo "📦 Installing MongoDB Shell (mongosh)..."
+wget -qO- https://www.mongodb.org/static/pgp/server-7.0.asc | sudo tee /etc/apt/trusted.gpg.d/server-7.0.asc > /dev/null
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list > /dev/null
+sudo apt-get update -qq
+sudo apt-get install -y -qq mongodb-mongosh
+echo "✅ mongosh installed: $(mongosh --version)"
+
 # Install Python dependencies
 echo "📦 Installing Python dependencies..."
 pip install -r requirements.txt
@@ -38,16 +46,6 @@ else
     echo "⚠️  WARNING: OPENAI_API_KEY is not set!"
     echo "   Set it as a Codespaces secret or in your .env file"
 fi
-
-# Wait for DocumentDB to be ready (started via docker run)
-echo "🐳 Starting DocumentDB container..."
-docker pull ghcr.io/documentdb/documentdb/documentdb-local:latest || echo "⚠️  Image pull failed, may already exist"
-docker rm -f documentdb-container 2>/dev/null || true
-docker run -dt -p 10260:10260 --name documentdb-container \
-    ghcr.io/documentdb/documentdb/documentdb-local:latest \
-    --username admin --password password123
-
-echo "✅ DocumentDB container is ready!"
 
 # Create helpful aliases
 echo "📝 Creating helpful bash aliases..."
