@@ -15,7 +15,7 @@ Dataset link: https://insideairbnb.com/get-the-data/
 
 ### Option 1: GitHub Codespaces (Recommended)
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/patty-chow/contoso-bookings?quickstart=1)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/documentdb/booking-agents?quickstart=1)
 
 1. Click the badge above or create a new Codespace from this repository
 2. **Set your OpenAI API key** (choose one method):
