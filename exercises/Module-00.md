@@ -26,33 +26,161 @@ Before starting, ensure you have:
 
 ---
 
-## 🚀 Step 1: Verify Your Codespace
+## Step 1: Configure Workshop Environment
 
-Your Codespace should have automatically:
-1. ✅ Built the dev container (Python 3.11 + Node.js 18)
-2. ✅ Installed Python dependencies (`requirements.txt`)
-3. ✅ Installed Node.js dependencies (`src/frontend/package.json`)
-4. ✅ Started DocumentDB on port 10260
-5. ✅ Installed VS Code extensions (Python, Jupyter, DocumentDB)
+This workshop is designed to run entirely in **GitHub Codespaces**, providing a consistent, pre-configured development environment for all participants.
 
-### Check the Setup Log
+> 💡 **Why Codespaces?** No local setup required, consistent environment for everyone, and automatic dependency installation.
 
-Look for this message in your terminal:
-```
-✅ DocumentDB is ready!
+### Prerequisites
 
-🎉 Setup complete! Next steps:
-   1. Configure your OPENAI_API_KEY (if not already done)
-   2. Open contoso-booking.ipynb to load data and create indexes
-   3. Start the backend: cd src/api && uvicorn main:app --reload
-   4. Start the frontend: cd src/frontend && npm start
-```
+- **GitHub account** - [Sign up for free](https://github.com/signup) if you don't have one
+- **Web browser** - Chrome, Firefox, Safari, or Edge (latest version recommended)
 
-If you see errors, ask your instructor for help.
+That's it! Everything else is handled by Codespaces.
+
+### Launch Your Codespace
+
+1. **Navigate to the repository**:
+   - Go to: `https://github.com/documentdb/booking-agents-sample`
+
+2. **Open in GitHub Codespaces**:
+   - Click the green **"Code"** button
+   - Select the **"Codespaces"** tab
+   - Click **"Create codespace on workshop"**
+   
+   Alternatively, click this badge:
+   
+   [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/documentdb/fast-api-sample/tree/workshop)
+
+3. **Wait for the environment to build** (first launch takes 2-3 minutes):
+   - Python 3.11 environment
+   - Node.js 20
+   - Docker-in-Docker
+   - VS Code extensions (DocumentDB, Python, Docker)
+   - All dependencies automatically installed
+
+4. **Verify Codespace is ready**:
+   - You should see VS Code in your browser
+   - Extensions should be installed (check the sidebar)
+   - Terminal should be available at the bottom
+
+5. **Open a terminal** (Terminal → New Terminal) and proceed to Activity 2
 
 ---
 
-## 🔑 Step 2: Configure OpenAI API Key
+## Step 2: Set Up DocumentDB Container
+
+Now that your environment is ready, let's deploy DocumentDB locally using Docker.
+
+### Deploy DocumentDB Container
+
+1. **Pull the DocumentDB Docker image**:
+   ```bash
+   docker pull ghcr.io/documentdb/documentdb/documentdb-local:latest
+   ```
+
+2. **Tag the image for convenience**:
+   ```bash
+   docker tag ghcr.io/documentdb/documentdb/documentdb-local:latest documentdb
+   ```
+
+3. **Run the DocumentDB container**:
+   ```bash
+   docker run -dt -p 10260:10260 --name documentdb-container documentdb --username admin --password password123
+   ```
+
+4. **Verify the container is running**:
+   ```bash
+   docker ps
+   ```
+   
+   You should see `documentdb-container` running on port 10260.
+   
+   Expected output:
+   ```
+   CONTAINER ID   IMAGE        COMMAND                  CREATED         STATUS         PORTS                      NAMES
+   abc123def456   documentdb   "./entrypoint.sh --u…"   10 seconds ago  Up 9 seconds   0.0.0.0:10260->10260/tcp   documentdb-container
+   ```
+
+### Connect to DocumentDB with VS Code Extension
+
+Download the 'DocumentDB for VS Code' extension on your codespace using the VS Code Marketplace. Afterwards, follow these steps to connect your DocumentDB container to the extension:
+
+1. **Open the DocumentDB extension**:
+   - Click the DocumentDB icon in the left sidebar (database icon)
+   - Or press `Ctrl+Shift+P` and type "DocumentDB"
+
+2. **Add a new connection**:
+   - Click the DocumentDB icon in the VS Code sidebar
+   - Click "Add New Connection"
+   - Select "Connection String"
+   - Paste the connection string:
+     ```
+     mongodb://admin:password123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true&authMechanism=SCRAM-SHA-256
+     ```
+
+4. **Verify the connection** - You should see your connection in the DocumentDB explorer
+
+---
+
+## Activity 3: Load Sample Data into DocumentDB
+
+Now that DocumentDB is running and connected, let's load sample data to work with throughout the workshop. You'll use the DocumentDB VS Code extension to import JSON files directly into your database.
+
+### Understanding the Sample Data
+
+The workshop includes a JSON file with sample data:
+
+- `data/json/combined_listings.json` - Combined Airbnb listings from multiple states
+
+### Load Data Using DocumentDB Extension
+
+1. **Open the DocumentDB extension**:
+   - Click the DocumentDB icon in the left sidebar
+   - Expand your connection to see databases
+
+2. **Create the database and collections**:
+   - Right-click on your connection
+   - Select **"Create Database"**
+   - Enter database name: `db`
+   - Press Enter
+
+3. **Create the customers collection**:
+   - Expand the `db` database
+   - Right-click on the database
+   - Select **"Create Collection"**
+   - Enter collection name: `listings`
+   - Press Enter
+
+4. **Import customer data**:
+   - Right-click on the `listings` collection
+   - Select **"Import Documents"**
+   - Navigate to: `data/json/combined_listings.json`
+   - Click **"Open"**
+   - Wait for the import confirmation message
+
+### Verify the Data
+
+1. **View the imported data**:
+   - Expand the collection
+   - Click on a collection to view documents
+   - You should see the imported documents listed
+
+2. **Explore a document**:
+   - Click on any document to view its contents
+   - Notice the structure matches the Beanie models
+   - Each document has an automatically generated `_id` field
+
+3. **Check document counts**:
+   - Right-click on each collection
+   - Select **"View Collection Statistics"** (if available)
+   - Or simply count the visible documents
+
+
+---
+
+## 🔑 Step 3: Configure OpenAI API Key
 
 You need an OpenAI API key to generate embeddings and use chat completions.
 
@@ -90,7 +218,7 @@ python -c "import os; from dotenv import load_dotenv; load_dotenv(); print('✅ 
 
 ---
 
-## 📁 Step 3: Understand the Project Structure
+## 📁 Step 4: Understand the Project Structure
 
 Let's explore the codebase:
 
@@ -134,7 +262,7 @@ During the workshop, you'll work primarily with:
 
 ---
 
-## 🗄️ Step 4: Verify DocumentDB Connection
+## 🗄️ Step 5: Verify DocumentDB Connection
 
 DocumentDB is running in a separate container. Let's verify the connection.
 
@@ -170,7 +298,7 @@ print(f"Connected! Databases: {client.list_database_names()}")
 
 ---
 
-## 📊 Step 5: Explore the Dataset
+## 📊 Step 6: Explore the Dataset
 
 Let's look at the data you'll be working with.
 
@@ -221,7 +349,7 @@ Open `data/datasets without embeddings/small_for_testing.json` to see a sample:
 
 ---
 
-## 🏗️ Step 6: Architecture Overview
+## 🏗️ Step 7: Architecture Overview
 
 Here's how the components work together:
 
@@ -269,7 +397,7 @@ User Query: "Find a quiet cabin with a hot tub near Denver"
 
 ---
 
-## ✅ Step 7: Verification Checklist
+## ✅ Step 8: Verification Checklist
 
 Before moving to Module 1, verify:
 
