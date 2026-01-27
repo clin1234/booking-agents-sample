@@ -40,10 +40,7 @@ The Codespace includes:
 The easiest way to run the complete application locally:
 
 ```bash
-# Quick start (builds and runs everything)
-./scripts/quickstart.sh
-
-# Or use make commands
+# Use make commands
 make up      # Start all services
 make down    # Stop all services
 make logs    # View logs
@@ -107,14 +104,14 @@ OPENAI_CHAT_MODEL=gpt-3.5-turbo
 
 ### 3. Load the data:
 
-Open and run the `contoso-booking.ipynb` notebook to:
+Follow the workshop modules in `notebooks/` to:
 1. Connect to DocumentDB
 2. Create vector search index using `cosmosSearch` (IVF algorithm)
 3. Create geospatial and amenity indexes
 4. Load the Airbnb listing data
 5. Generate OpenAI embeddings for each listing
 
-The notebook will create:
+The setup will create:
 - **Vector Index**: `vector-ivf` with cosine similarity for semantic search
 - **Geospatial Index**: `2dsphere` for location-based queries
 - **Amenity Index**: For fast filtering by amenities
