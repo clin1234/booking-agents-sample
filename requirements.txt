@@ -6,5 +6,6 @@ uvicorn
 langchain
 langchain-openai
 langchain-community
+langgraph
 ipykernel
 geopy

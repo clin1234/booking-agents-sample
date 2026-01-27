@@ -1,10 +1,30 @@
-openai
-pymongo
-python-dotenv
-fastapi
-uvicorn
-langchain
-langchain-openai
-langchain-community
-ipykernel
-geopy
+# ============================================================================
+# Booking Search API - Dependencies
+# ============================================================================
+
+# Core Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+
+# Database
+pymongo>=4.6.0
+
+# AI/ML - Core
+openai>=1.6.0
+tiktoken>=0.5.0
+
+# LangChain - RAG (Module 2)
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langchain-community>=0.0.10
+
+# LangGraph - Multi-Agent (Module 3)
+langgraph>=0.0.20
+
+# Development Tools
+ipykernel>=6.0.0
+
+# Optional: Azure OpenAI Support
+# azure-identity>=1.15.0
