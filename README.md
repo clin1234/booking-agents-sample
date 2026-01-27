@@ -1,12 +1,13 @@
 # Real-Time AirBnB Property Search with Location and Text-based Filters
 
-Use a dataset of Airbnb listings with associated descriptions and geospatial metadata (longitude/ latitude). Combine spatial filtering (find properties in a specific area) with semantic search (e.g., "garden", "3 bedrooms") using OpenAI embeddings and DocumentDB's native vector search.
- 
-Dataset link: https://insideairbnb.com/get-the-data/
+### Not on Codespaces Yet?
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/documentdb/booking-agents-sample?quickstart=1)
+
+### At Your Codespace? [Start Here](exercises/Module-00.md)
 
 ## Features
 
-- **Vector Search**: DocumentDB's native `cosmosSearch` with IVF (Inverted File Index) for efficient similarity search
+- **Vector Search**: DocumentDB's native tooling with IVF (Inverted File Index) for efficient similarity search
 - **Geospatial Queries**: Find properties within a radius using MongoDB-compatible 2dsphere indexes
 - **Semantic Search**: OpenAI embeddings for natural language understanding
 - **Hybrid Search**: Combine vector similarity with filters (amenities, location, price)
@@ -23,8 +24,7 @@ Dataset link: https://insideairbnb.com/get-the-data/
      - Go to [GitHub Settings → Codespaces](https://github.com/settings/codespaces)
      - Add secret: `OPENAI_API_KEY` = `your-key-here`
    - **Or edit `.env` file** in the Codespace
-3. Wait for the devcontainer to build (DocumentDB will start automatically)
-4. Open `contoso-booking.ipynb` and run cells to load data
+3. Build your DocumentDB container and load your data
 5. Start the backend: `cd src/api && uvicorn main:app --reload`
 6. Start the frontend: `cd src/frontend && npm start`
 
