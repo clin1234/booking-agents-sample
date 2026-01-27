@@ -373,7 +373,7 @@ def create_vector_index():
         
         # Create vector search index
         collection.create_index(
-            [("descriptionVector", "cosmosSearch")],
+            [("_descriptionVector_", "cosmosSearch")],
             name="vectorSearchIndex",
             cosmosSearchOptions={
                 "kind": "vector-ivf",
