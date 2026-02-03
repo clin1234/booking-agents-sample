@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="app-header">
       <div className="header-left">
-        <img src="/Azure-Cosmos-DB.svg" alt="Logo" className="header-logo" />
+        <img src="/documentdb_icon.svg" alt="Logo" className="header-logo" />
         <h1 className="header-title">Contoso Bookings</h1>
         <span className="header-subtitle">AI-Powered Search Workshop</span>
       </div>
