@@ -47,15 +47,18 @@
   "portsAttributes": {
     "3000": {
       "label": "Frontend (React)",
-      "onAutoForward": "notify"
+      "onAutoForward": "notify",
+      "visibility": "public"
     },
     "8000": {
       "label": "Backend API (FastAPI)",
-      "onAutoForward": "notify"
+      "onAutoForward": "notify",
+      "visibility": "public"
     },
     "10260": {
       "label": "DocumentDB",
-      "onAutoForward": "silent"
+      "onAutoForward": "silent",
+      "visibility": "public"
     }
   },
 
