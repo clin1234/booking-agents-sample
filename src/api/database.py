@@ -140,7 +140,7 @@ class DatabaseConnection:
     
     def get_document_count(self) -> int:
         """Get count of documents in collection."""
-        if self._is_connected and self._collection:
+        if self._is_connected and self._collection is not None:
             try:
                 return self._collection.count_documents({})
             except Exception:

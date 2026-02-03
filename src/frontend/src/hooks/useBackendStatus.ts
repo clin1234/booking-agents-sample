@@ -1,7 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BackendStatus } from '../types';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Helper to get the API base URL, supporting Codespaces
+const getApiBaseUrl = (): string => {
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  // Auto-detect Codespaces URL from current hostname
+  const hostname = window.location.hostname;
+  if (hostname.includes('.app.github.dev') || hostname.includes('.preview.app.github.dev')) {
+    // Replace port 3000 with 8000 in the Codespaces URL
+    return window.location.origin.replace('-3000.', '-8000.');
+  }
+  return 'http://localhost:8000';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export function useBackendStatus(checkInterval = 30000) {
   const [status, setStatus] = useState<BackendStatus>({

@@ -196,9 +196,8 @@ Now let's start the application to see it in action!
 The backend is a FastAPI application that provides the search and chat APIs.
 
 ```bash
-cd src/api
-pip install -r requirements.txt
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+pip install -r src/api/requirements.txt
+uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 You should see output like:
@@ -244,7 +243,6 @@ You can now view the app in the browser.
    - Green = connected to backend
    - Yellow = demo mode (backend not connected yet)
 
-> 💡 **Note:** The frontend works even without the backend! It will show demo data and a setup guide until you complete the workshop modules.
 ---
 
 ## ✅ Verification Checklist
