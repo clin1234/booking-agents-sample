@@ -1,18 +1,18 @@
 // Core types for the Contoso Bookings application
 
 export interface Listing {
-  id: string;
+  id: number;
   listing_url: string;
   name: string;
   description: string;
   neighborhood_overview: string;
-  latitude: string;
-  longitude: string;
-  price: string;
-  amenities: string; // JSON string of amenities array
-  beds: string;
-  bedrooms: string;
-  bathrooms: string;
+  latitude: number;
+  longitude: number;
+  price: number | null;
+  amenities: string[]; // Array of amenities
+  beds: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
   bathrooms_text: string;
   property_type: string;
   room_type: string;
@@ -22,14 +22,14 @@ export interface Listing {
 }
 
 export interface SearchResult {
-  id: string;
+  id: number;
   name: string;
   price: number;
   lat: number;
   lng: number;
   similarity_score?: number;
   property_type?: string;
-  bedrooms?: string;
+  bedrooms?: number | null;
   amenities?: string[];
   description?: string;
 }

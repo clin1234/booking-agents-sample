@@ -41,9 +41,9 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         {listing.property_type && (
           <span className="listing-type">{listing.property_type}</span>
         )}
-        {listing.bedrooms && (
+        {listing.bedrooms != null && (
           <span className="listing-beds">
-            {listing.bedrooms} {parseInt(listing.bedrooms) === 1 ? 'bedroom' : 'bedrooms'}
+            {listing.bedrooms} {listing.bedrooms === 1 ? 'bedroom' : 'bedrooms'}
           </span>
         )}
       </div>

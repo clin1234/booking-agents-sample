@@ -31,7 +31,7 @@ const App: React.FC = () => {
   
   const [showSetupGuide, setShowSetupGuide] = useState(true);
   const [listings, setListings] = useState<SearchResult[]>([]);
-  const [selectedListingId, setSelectedListingId] = useState<string | undefined>();
+  const [selectedListingId, setSelectedListingId] = useState<number | undefined>();
   const [isSearching, setIsSearching] = useState(false);
   const [userLocation] = useState({ lat: 39.7392, lng: -104.9903 }); // Denver
 
@@ -52,24 +52,28 @@ const App: React.FC = () => {
       const response = await fetch(`${API_BASE_URL}/query_message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: query, amenities: [] }),
+        body: JSON.stringify({ message: query }),
       });
 
       if (!response.ok) throw new Error('Search failed');
 
       const data = await response.json();
       
-      const searchResults: SearchResult[] = data.listings?.map((listing: any) => ({
-        id: listing._id || listing.id || String(Math.random()),
-        name: listing.name,
-        price: typeof listing.price === 'number' ? listing.price : parseFloat(listing.price?.replace(/[$,]/g, '') || '0'),
-        lat: listing.location?.coordinates?.[1] || listing.latitude,
-        lng: listing.location?.coordinates?.[0] || listing.longitude,
-        property_type: listing.property_type,
-        bedrooms: listing.bedrooms,
-        similarity_score: listing.similarity_score,
-        description: listing.description,
-      })) || [];
+      // Backend returns search_results, not listings
+      const searchResults: SearchResult[] = (data.search_results || data.listings || []).map((result: any) => {
+        const listing = result.listing || result;
+        return {
+          id: listing._id ?? listing.id ?? Math.floor(Math.random() * 1000000),
+          name: listing.name,
+          price: typeof listing.price === 'number' ? listing.price : parseFloat(listing.price?.replace(/[$,]/g, '') || '0'),
+          lat: listing.location?.coordinates?.[1] ?? listing.latitude,
+          lng: listing.location?.coordinates?.[0] ?? listing.longitude,
+          property_type: listing.property_type,
+          bedrooms: listing.bedrooms,
+          similarity_score: result.score || listing.similarity_score,
+          description: listing.description,
+        };
+      });
 
       setListings(searchResults);
       return { message: data.message, listings: searchResults };

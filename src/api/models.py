@@ -3,10 +3,13 @@ Pydantic Models for API Requests and Responses
 ===============================================
 
 Models match the embedded_data.json schema:
-- id: string (listing ID)
+- id: integer (listing ID)
 - latitude/longitude: separate float fields  
 - descriptionVector: embedding array (not exposed in API)
 - amenities: array of strings
+- price: float (numeric, not string)
+- beds/bedrooms: integer (nullable)
+- bathrooms: float (nullable)
 """
 
 from typing import List, Optional, Dict, Any
@@ -23,7 +26,7 @@ class Listing(BaseModel):
     
     Matches the embedded_data.json structure used in the workshop.
     """
-    id: str = Field(..., description="Unique listing identifier")
+    id: int = Field(..., description="Unique listing identifier")
     name: str = Field(..., description="Listing name/title")
     description: Optional[str] = Field(None, description="Full description")
     neighborhood_overview: Optional[str] = Field(None, description="Neighborhood info")
@@ -151,9 +154,13 @@ def normalize_listing(doc: Dict[str, Any]) -> Listing:
     Handles both raw data format and database format from embedded_data.json.
     """
     # Handle ID (could be _id from MongoDB or id from JSON)
-    listing_id = str(doc.get('_id', doc.get('id', '')))
+    raw_id = doc.get('_id', doc.get('id', 0))
+    try:
+        listing_id = int(raw_id) if raw_id else 0
+    except (ValueError, TypeError):
+        listing_id = 0
     
-    # Handle price - could be "$161.00" string or number
+    # Handle price - already numeric in updated embedded_data.json, but handle legacy string format
     price = doc.get('price', 0)
     if isinstance(price, str):
         # Remove $ and commas, handle empty string

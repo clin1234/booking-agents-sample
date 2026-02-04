@@ -5,7 +5,7 @@ import './ListingsPanel.css';
 
 interface ListingsPanelProps {
   listings: SearchResult[];
-  selectedId?: string;
+  selectedId?: number;
   onSelectListing: (listing: SearchResult) => void;
   isLoading?: boolean;
   isDemo?: boolean;

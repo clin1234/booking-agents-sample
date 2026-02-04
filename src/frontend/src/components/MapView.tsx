@@ -36,7 +36,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 interface MapViewProps {
   listings: SearchResult[];
-  selectedId?: string;
+  selectedId?: number;
   onSelectListing: (listing: SearchResult) => void;
   center?: { lat: number; lng: number };
 }
