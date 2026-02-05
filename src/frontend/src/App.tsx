@@ -37,13 +37,42 @@ const App: React.FC = () => {
 
   const isDemo = !isConnected;
 
-  // Show some demo listings initially when in demo mode
+  // Fetch listings from backend when connected, or show demo listings
   useEffect(() => {
-    if (isDemo && !isDemoLoading && listings.length === 0) {
+    const fetchListingsFromBackend = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/listings?limit=20`);
+        if (response.ok) {
+          const data = await response.json();
+          const backendListings: SearchResult[] = data
+            .filter((listing: any) => listing.latitude != null && listing.longitude != null)
+            .map((listing: any) => ({
+              id: listing.id,
+              name: listing.name,
+              price: listing.price ?? 0,
+              lat: listing.latitude,
+              lng: listing.longitude,
+              property_type: listing.property_type,
+              bedrooms: listing.bedrooms,
+              amenities: listing.amenities ?? [],
+              description: listing.description,
+            }));
+          setListings(backendListings);
+        }
+      } catch (error) {
+        console.error('Failed to fetch listings from backend:', error);
+      }
+    };
+
+    if (isConnected) {
+      // Fetch from backend when connected
+      fetchListingsFromBackend();
+    } else if (!isDemoLoading) {
+      // Show demo listings when in demo mode
       const demoListings = getSearchResults(5);
       setListings(demoListings);
     }
-  }, [isDemo, isDemoLoading, listings.length, getSearchResults]);
+  }, [isConnected, isDemoLoading, getSearchResults]);
 
   // Backend search function
   const handleBackendSearch = useCallback(async (query: string): Promise<{ message: string; listings: SearchResult[] }> => {
