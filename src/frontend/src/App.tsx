@@ -37,40 +37,15 @@ const App: React.FC = () => {
 
   const isDemo = !isConnected;
 
-  // Fetch listings from backend when connected, or show demo listings
+  // Only show listings from search results - don't fetch all listings on initial load
   useEffect(() => {
-    const fetchListingsFromBackend = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/listings?limit=20`);
-        if (response.ok) {
-          const data = await response.json();
-          const backendListings: SearchResult[] = data
-            .filter((listing: any) => listing.latitude != null && listing.longitude != null)
-            .map((listing: any) => ({
-              id: listing.id,
-              name: listing.name,
-              price: listing.price ?? 0,
-              lat: listing.latitude,
-              lng: listing.longitude,
-              property_type: listing.property_type,
-              bedrooms: listing.bedrooms,
-              amenities: listing.amenities ?? [],
-              description: listing.description,
-            }));
-          setListings(backendListings);
-        }
-      } catch (error) {
-        console.error('Failed to fetch listings from backend:', error);
-      }
-    };
-
-    if (isConnected) {
-      // Fetch from backend when connected
-      fetchListingsFromBackend();
-    } else if (!isDemoLoading) {
-      // Show demo listings when in demo mode
+    if (!isConnected && !isDemoLoading) {
+      // Show demo listings only in demo mode
       const demoListings = getSearchResults(5);
       setListings(demoListings);
+    } else if (isConnected) {
+      // When connected, start with empty listings - user will search via chat
+      setListings([]);
     }
   }, [isConnected, isDemoLoading, getSearchResults]);
 

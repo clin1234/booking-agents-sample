@@ -21,7 +21,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       type: 'system',
       content: isBackendConnected 
         ? "👋 Hi! I'm your AI booking assistant. Tell me what kind of place you're looking for!"
-        : "👋 Welcome to Demo Mode! The AI backend isn't connected yet, but you can try searching. Complete the workshop modules to unlock full AI-powered search!",
+        : "👋 Hi! I'm your AI booking assistant. Tell me what kind of place you're looking for!",
       timestamp: new Date(),
     }
   ]);

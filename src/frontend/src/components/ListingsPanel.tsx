@@ -44,12 +44,12 @@ export const ListingsPanel: React.FC<ListingsPanelProps> = ({
 
       {listings.length === 0 ? (
         <div className="listings-empty">
-          <div className="empty-icon">🏠</div>
+          <div className="empty-icon">🔍</div>
           <p>No listings to display yet.</p>
           <p className="empty-hint">
             {isDemo 
               ? 'Try searching for properties in the chat!'
-              : 'Complete the setup to enable AI-powered search.'}
+              : 'Ask the AI Assistant to find properties for you!'}
           </p>
         </div>
       ) : (

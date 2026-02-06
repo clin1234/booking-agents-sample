@@ -226,13 +226,21 @@ async def query_message(request: ChatRequest):
             result = await run_agent_query(request.message, session_id)
             
             # Convert search results to SearchResult models
-            search_results = [
-                SearchResult(
-                    listing=Listing(**r) if isinstance(r, dict) else r,
-                    score=r.get('score', 1.0) if isinstance(r, dict) else 1.0
-                )
-                for r in result.get('search_results', [])
-            ]
+            search_results = []
+            for r in result.get('search_results', []):
+                if isinstance(r, dict):
+                    score = r.pop('score', 1.0) if 'score' in r else 1.0
+                    # Handle nested structure from model_dump() (legacy)
+                    if 'listing' in r:
+                        listing_data = r['listing']
+                    else:
+                        listing_data = r
+                    search_results.append(SearchResult(
+                        listing=Listing(**listing_data),
+                        score=score
+                    ))
+                else:
+                    search_results.append(r)
             
             return ChatResponse(
                 message=result['response'],

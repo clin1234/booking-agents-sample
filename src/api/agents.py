@@ -245,7 +245,11 @@ def search_node(state: AgentState) -> AgentState:
         from .search import search_listings
         
         results = search_listings(state['user_query'], limit=20)
-        state['search_results'] = [r.model_dump() for r in results]
+        # Store listing data with score for downstream processing
+        state['search_results'] = [
+            {**r.listing.model_dump(), 'score': r.score}
+            for r in results
+        ]
         state['messages'].append(AIMessage(content=f"Found {len(results)} listings"))
         
     except Exception as e:
@@ -445,10 +449,10 @@ def build_agent_graph():
         }
     )
     
-    # After search/filter/recommend, go back to supervisor
-    workflow.add_edge("search", "supervisor")
-    workflow.add_edge("filter", "supervisor")
-    workflow.add_edge("recommend", "supervisor")
+    # After search/filter/recommend, proceed to next logical step (not back to supervisor to avoid loops)
+    workflow.add_edge("search", "recommend")
+    workflow.add_edge("filter", "recommend")
+    workflow.add_edge("recommend", "respond")
     
     # Respond ends the workflow
     workflow.add_edge("respond", END)
