@@ -580,6 +580,62 @@ for query in test_queries:
 - "Business travel" finds properties with workspaces, desks, and good wifi
 - The semantic understanding goes beyond exact keyword matching
 
+## Step 10: Launch Frontend and Backend
+
+Now let's start the application to see it in action!
+
+### Launch the Backend (Terminal 1)
+
+The backend is a FastAPI application that provides the search and chat APIs.
+
+```bash
+pip install -r src/api/requirements.txt
+uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+You should see output like:
+```
+INFO:     Uvicorn running on http://0.0.0.0:8000
+INFO:     Started reloader process
+✅ Connected to DocumentDB: db.listings
+```
+
+> 💡 **Tip:** In Codespaces, click the "Open in Browser" button when prompted, or go to the Ports tab and click the globe icon for port 8000 to access the API docs at `/docs`.
+
+### Launch the Frontend (Terminal 2)
+
+Open a **new terminal** (Terminal → New Terminal) and run:
+
+```bash
+cd src/frontend
+npm install
+npm start
+```
+
+You should see:
+```
+Compiled successfully!
+You can now view the app in the browser.
+  Local:            http://localhost:3000
+```
+
+> 💡 **Tip:** In Codespaces, click the "Open in Browser" button when prompted for port 3000 to view the application.
+
+### Verify Everything Works
+
+1. **Check the Backend Health**:
+   - Open: `http://localhost:8000/health` (or the Codespaces URL)
+   - You should see a JSON response with `"status": "ok"` or `"status": "degraded"`
+
+2. **Check the Frontend**:
+   - Open: `http://localhost:3000` (or the Codespaces URL)
+   - You should see the booking search interface with a map
+
+3. **Test the Connection**:
+   - The frontend header shows a connection indicator
+   - Green = connected to backend
+   - Yellow = demo mode (backend not connected yet)
+
 ## 🎓 What You've Learned
 
 ✅ **Vector Embeddings**: How to convert text into numerical representations  

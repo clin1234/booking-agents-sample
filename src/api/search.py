@@ -222,13 +222,20 @@ def text_search(
     query_terms = query_lower.split()
     
     def score_document(doc: Dict) -> float:
-        """Calculate match score for a document."""
+        """Calculate match score for a document.
+        
+        Uses the same fields as the composite embedding text to keep
+        text-fallback scoring aligned with vector search relevance.
+        """
+        amenities = doc.get('amenities', [])
+        amenities_str = ' '.join(amenities) if isinstance(amenities, list) else str(amenities)
         searchable_text = ' '.join([
             str(doc.get('name', '')),
             str(doc.get('description', '')),
             str(doc.get('neighborhood_overview', '')),
             str(doc.get('property_type', '')),
             str(doc.get('room_type', '')),
+            amenities_str,
         ]).lower()
         
         # Count matching terms
