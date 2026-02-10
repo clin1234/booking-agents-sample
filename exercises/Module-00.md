@@ -126,6 +126,7 @@ The workshop includes a JSON file with sample data that already contains vector 
 1. **Open the DocumentDB extension**:
    - Click the DocumentDB icon in the left sidebar
    - Expand your connection to see databases
+   - **Note:** Feel free to delete the database "sampledb" from the extension if you see it.
 
 2. **Create the database and collections**:
    - Right-click on your connection
@@ -147,7 +148,6 @@ The workshop includes a JSON file with sample data that already contains vector 
    - Click **"Open"**
    - Wait for the import confirmation message
 
-> 💡 **Note:** This file contains pre-generated vector embeddings, so you can steps 3-5 in Module 1!
 
 
 ---
@@ -308,15 +308,6 @@ docker logs documentdb
 # Reinstall dependencies
 pip install -r requirements.txt
 ```
-
----
-
-## 📚 Additional Resources
-
-- [DocumentDB Vector Search Guide](https://github.com/documentdb/documentdb)
-- [OpenAI Embeddings Guide](https://platform.openai.com/docs/guides/embeddings)
-- [LangChain Quickstart](https://python.langchain.com/docs/get_started/quickstart)
-- [FastAPI Tutorial](https://fastapi.tiangolo.com/tutorial/)
 
 ---
 

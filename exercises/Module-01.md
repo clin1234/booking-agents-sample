@@ -1,6 +1,8 @@
 # Module 1: Vector Search Fundamentals
 
-### 📓 **[Open the Jupyter Notebook](../notebooks/module-01.ipynb)** to follow along with the code exercises.
+### 📓 Jupyter Notebooks:
+- **[generate-embeddings.ipynb](../notebooks/generate-embeddings.ipynb)** - Learn how embeddings work (Steps 1-5, optional)
+- **[vector-search.ipynb](../notebooks/vector-search.ipynb)** - Implement vector search (Steps 6+, start here if short on time)
 
 ## 📋 Learning Objectives
 
@@ -72,9 +74,15 @@ You'll implement a semantic search system that allows users to search for Airbnb
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+## 🛠️ Steps 1-5: Understanding Embeddings (Demonstration)
+
+> **⏭️ Skip Ahead?** Steps 1-5 are a **learning demonstration** to help you understand how embeddings work. They do **not** modify the application or database. If you're short on time, you can **[skip to Step 6](#step-6-create-vector-index-using-the-documentdb-for-vs-code-extension)** to start working with the pre-embedded data.
+
+---
+
 ## 🛠️ Step 1: Understanding the Data
 
-Let's first explore the dataset structure.
+Let's first explore the dataset structure in the **[Jupyter Notebook](../notebooks/generate-embeddings.ipynb)**.
 
 ### Dataset Overview
 
@@ -82,97 +90,61 @@ Our dataset contains Airbnb listings with the following key fields:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| `_id` | string | Unique identifier | `"10006546"` |
-| `listing_url` | string | URL to the listing | `"https://www.airbnb.com/rooms/10006546"` |
-| `name` | string | Property title | `"Ribeira Charming Duplex"` |
-| `summary` | string | Brief description | `"Fantastic duplex apartment..."` |
-| `space` | string | Details about the space | `"Privileged views of the river..."` |
-| `description` | string | Full description (combined) | Concatenated text for embeddings |
-| `neighborhood_overview` | string | Area information | `"In the neighborhood of the river..."` |
-| `notes` | string | Additional notes | Important guest information |
+| `id` | number | Unique identifier | `360` |
+| `listing_url` | string | URL to the listing | `"https://www.airbnb.com/rooms/360"` |
+| `name` | string | Property title | `"Chickadee Cottage in LoHi"` |
+| `description` | string | Full description | Text used for embeddings |
+| `neighborhood_overview` | string | Area information | `"Located in Lower Highlands..."` |
 | `amenities` | array | List of amenities | `["Wifi", "Kitchen", "TV", ...]` |
-| `property_type` | string | Type of property | `"House"`, `"Apartment"`, etc. |
+| `property_type` | string | Type of property | `"Entire guesthouse"`, `"Apartment"`, etc. |
 | `room_type` | string | Room configuration | `"Entire home/apt"` |
 | `bedrooms` | number | Number of bedrooms | `1`, `2`, `3`, etc. |
 | `beds` | number | Number of beds | `1`, `2`, `3`, etc. |
-| `price` | number | Nightly price | `80.00` |
-| `address` | object | Location details | See below |
-| `address.location` | object | Coordinates | `{type: "Point", coordinates: [lng, lat]}` |
-| `address.country` | string | Country code | `"United States"` |
-| `address.market` | string | City/Market | `"Chicago"` |
-
-### Import required libraries
-
-```python
-import os
-import json
-from pymongo import MongoClient
-from openai import OpenAI
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv(override=True)
-
-# Initialize OpenAI client
-openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-
-print("✅ Libraries imported and environment loaded")
-```
+| `price` | number | Nightly price | `161.0` |
+| `latitude` | number | Latitude coordinate | `39.766414` |
+| `longitude` | number | Longitude coordinate | `-105.002098` |
 
 **💡 Key Insight:** The `description` field is what we'll convert into vector embeddings for semantic search.
 
-## 🛠️ Step 2: Set Up Environment & Connect to DocumentDB
+### Pre-embedded Data
+
+For this workshop, we provide **pre-embedded data** in `data/embedded_data.json` that already contains the `descriptionVector` field. This saves time and API costs during the workshop.
+
+Understanding how embeddings are generated is essential! The next steps demonstrate embedding 50 sample documents **in the notebook** as a learning exercise.
+
+## 🛠️ Step 2: Load and Examine Sample Data
+
+Run the cells in **[generate-embeddings.ipynb](../notebooks/generate-embeddings.ipynb)** to load and explore the raw data:
 
 ```python
-# Connect to DocumentDB
-DOCUMENTDB_CONNECTION_STRING = os.getenv('DOCUMENTDB_CONNECTION_STRING')
-client = MongoClient(DOCUMENTDB_CONNECTION_STRING)
-db = client['db']
-collection = db['listings']
-
-print("✅ Connected to DocumentDB")
-print(f"📊 Current document count: {collection.count_documents({})}")
-```
-
-### Verify Connection
-
-```python
-# Test the connection by fetching one document
-test_doc = collection.find_one()
-if test_doc:
-    print(f"✅ Successfully retrieved document: {test_doc.get('name', 'Unknown')}")
-else:
-    print("⚠️ No documents found. We'll load data next.")
-```
-
-## 🛠️ Step 3: Load and Examine Sample Data
-
-### Create an Embedding Function
-
-```python
-# Load a small sample to examine
-with open('data/raw_data.json', 'r') as f:
+# Load raw data (without embeddings)
+with open('../data/raw_data.json', 'r', encoding='utf-8') as f:
     data = json.load(f)
 
-# Look at the first listing
+print(f"📊 Loaded {len(data)} listings from raw_data.json")
+
+# Examine the first listing
 sample = data[0]
-print(f"Listing ID: {sample['id']}")
-print(f"Name: {sample['name']}")
-print(f"Property Type: {sample['property_type']}")
-print(f"Bedrooms: {sample.get('bedrooms', 'N/A')}")
-print(f"Price: ${sample.get('price', 'N/A')}")
-print(f"Amenities: {', '.join(sample.get('amenities', [])[:5])}...")
-print(f"\nDescription Preview:")
-print(sample.get('description', '')[:200] + "...")
+print(f"\n📄 Sample Listing:")
+print(f"   ID: {sample['id']}")
+print(f"   Name: {sample['name']}")
+print(f"   Property Type: {sample['property_type']}")
+print(f"   Bedrooms: {sample.get('bedrooms', 'N/A')}")
+print(f"   Price: ${sample.get('price', 'N/A')}")
+print(f"   Amenities: {', '.join(sample.get('amenities', [])[:5])}...")
+print(f"\n📝 Description Preview:")
+print(f"   {sample.get('description', '')[:200]}...")
 ```
 
-## 🛠️ Step 4: Create Embedding Generation Function
+## 🛠️ Step 3: Create Embedding Generation Function
 
 We'll use OpenAI's `text-embedding-3-small` model to generate 1536-dimension vectors that capture semantic meaning.
 
 ### 💡 Understanding the Embedding
 
 Each number in the 1536-dimension vector represents a learned feature. The model has discovered that certain combinations of these numbers correspond to semantic concepts like "cozy", "parking", "downtown", etc.
+
+The notebook contains the `generate_embedding()` function:
 
 ```python
 def generate_embedding(text):
@@ -198,83 +170,106 @@ def generate_embedding(text):
         print(f"Error generating embedding: {e}")
         return None
 
-# Test the function
+
+# Test the function with a sample query
 test_text = "Cozy apartment near downtown with free parking"
 test_embedding = generate_embedding(test_text)
 
-print(f"✅ Generated embedding")
-print(f"📏 Dimensions: {len(test_embedding)}")
-print(f"📊 First 5 values: {test_embedding[:5]}")
-print(f"📊 Data type: {type(test_embedding[0])}")
+print(f"\n🧪 Testing Embedding Generation:")
+print(f"   Input: '{test_text}'")
+print(f"   ✅ Generated embedding")
+print(f"   📏 Dimensions: {len(test_embedding)}")
+print(f"   📊 First 5 values: {test_embedding[:5]}")
 ```
 
-## 🛠️ Step 5: Load Data with Embeddings
+## 🛠️ Step 4: Generate Embeddings for 50 Documents
 
-We'll use OpenAI's `text-embedding-3-small` model to generate 1536-dimension vectors that capture semantic meaning.
+Now let's embed 50 documents from `raw_data.json` to understand the full process. **Note:** This is a learning exercise - we won't write to the database since pre-embedded data is already available.
+
+The notebook contains the `embed_documents()` function:
 
 ```python
-def load_data_with_embeddings(file_path, limit=None):
+def embed_documents(documents, limit=50):
     """
-    Load data from JSON file and generate embeddings for each listing.
+    Generate embeddings for a list of documents.
     
     Args:
-        file_path (str): Path to the JSON data file
-        limit (int, optional): Maximum number of documents to process
+        documents (list): List of listing documents
+        limit (int): Maximum number of documents to process
         
     Returns:
-        list: Documents with embeddings added
+        list: Documents with descriptionVector added
     """
-    print(f"📖 Loading data from {file_path}...")
+    docs_to_process = documents[:limit]
+    embedded_docs = []
     
-    with open(file_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    print(f"\n🔄 Generating embeddings for {len(docs_to_process)} documents...")
     
-    if limit:
-        data = data[:limit]
-    
-    print(f"📊 Loaded {len(data)} documents")
-    print("🔄 Generating embeddings...")
-    
-    documents_with_embeddings = []
-    
-    for idx, doc in enumerate(data):
-        # Create a rich description for embedding
-        description_text = doc.get('description', '')
-        
-        # Generate embedding
-        embedding = generate_embedding(description_text)
+    for idx, doc in enumerate(docs_to_process):
+        description = doc.get('description', '')
+        embedding = generate_embedding(description)
         
         if embedding:
-            doc['descriptionVector'] = embedding
-            documents_with_embeddings.append(doc)
-            
-            if (idx + 1) % 10 == 0:
-                print(f"  Processed {idx + 1}/{len(data)} documents...")
+            doc_copy = doc.copy()
+            doc_copy['descriptionVector'] = embedding
+            embedded_docs.append(doc_copy)
+        
+        # Progress update every 10 documents
+        if (idx + 1) % 10 == 0:
+            print(f"   ✅ Processed {idx + 1}/{len(docs_to_process)} documents...")
     
-    print(f"✅ Generated embeddings for {len(documents_with_embeddings)} documents")
-    return documents_with_embeddings
-```
-```python
-# Start with a small dataset for testing (50 documents)
-documents = load_data_with_embeddings(
-    'data/raw_data.json',
-    limit=50
-)
-```
-```python
-# Show one document from the documents list
-print(f"📄 Sample document with new embeddings:\n")
-sample_doc = documents[0]
-print(f"ID: {sample_doc.get('id')}")
-print(f"Name: {sample_doc.get('name')}")
-print(f"Property Type: {sample_doc.get('property_type')}")
-print(f"Bedrooms: {sample_doc.get('bedrooms', 'N/A')}")
-print(f"Price: ${sample_doc.get('price', 'N/A')}")
-print(f"Has embedding: {'descriptionVector' in sample_doc}")
-print(f"Embedding dimensions: {len(sample_doc.get('descriptionVector', []))}")
+    print(f"\n✅ Generated embeddings for {len(embedded_docs)} documents")
+    return embedded_docs
+
+
+# Run the embedding process
+embedded_documents = embed_documents(data, limit=50)
+
+# Show results
+print(f"\n📊 Results Summary:")
+print(f"   Documents processed: {len(embedded_documents)}")
+print(f"   Embedding dimensions: {len(embedded_documents[0]['descriptionVector'])}")
+
+# Show a sample embedded document
+sample_embedded = embedded_documents[0]
+print(f"\n📄 Sample Embedded Document:")
+print(f"   Name: {sample_embedded['name']}")
+print(f"   Has embedding: {'descriptionVector' in sample_embedded}")
+print(f"   Vector preview: {sample_embedded['descriptionVector'][:3]}...")
 ```
 
+## 🛠️ Step 5: Verify Results
+
+Run the embedding cells in the notebook and verify the output:
+
+**Expected Output:**
+```
+✅ Libraries imported and environment loaded
+📊 Loaded 1000 listings from raw_data.json
+
+📄 Sample Listing:
+   ID: 360
+   Name: Sit in the Peaceful Garden of the Chickadee Cottage in LoHi
+   ...
+
+🔄 Generating embeddings for 50 documents...
+   ✅ Processed 10/50 documents...
+   ✅ Processed 20/50 documents...
+   ...
+✅ Generated embeddings for 50 documents
+
+📊 Results Summary:
+   Documents processed: 50
+   Embedding dimensions: 1536
+```
+
+**💡 Note:** The full dataset is already embedded in `data/embedded_data.json`. This exercise demonstrates the embedding process without the cost of re-embedding all 1,000 listings.
+
+---
+
 ## 🛠️ Step 6: Create Vector Index Using the DocumentDB for VS Code Extension
+
+> **📍 Start Here** if you skipped the embedding demonstration (Steps 1-5).
 
 Now that your data with embeddings is loaded in DocumentDB, you need to create a **vector search index** to enable fast similarity searches.
 
@@ -284,7 +279,7 @@ Now that your data with embeddings is loaded in DocumentDB, you need to create a
 
 2. **Navigate to your Scrapbook**:
    - Right-click on your connection
-   - Select **"New Scrapbook"** (or open an existing `.mongodb` scrapbook file)
+   - Select **"New Scrapbook"**
 
 3. **Run the following commands** in your scrapbook (select each block and press `Ctrl+Enter` or click "Run"):
 
@@ -303,21 +298,7 @@ db.runCommand({
         }
     }]
 })
-```
 
-4. **Create filter indexes** for better query performance:
-
-```javascript
-// Create filter indexes
-db.listings.createIndex({ "address.market": 1 })
-db.listings.createIndex({ "property_type": 1 })
-db.listings.createIndex({ "bedrooms": 1 })
-db.listings.createIndex({ "price": 1 })
-```
-
-5. **Verify the indexes were created**:
-
-```javascript
 // Check all indexes on the collection
 db.listings.getIndexes()
 ```
@@ -327,10 +308,6 @@ db.listings.getIndexes()
 [
   { "name": "_id_", "key": { "_id": 1 } },
   { "name": "vectorSearchIndex", "key": { "descriptionVector": "cosmosSearch" } },
-  { "name": "address.market_1", "key": { "address.market": 1 } },
-  { "name": "property_type_1", "key": { "property_type": 1 } },
-  { "name": "bedrooms_1", "key": { "bedrooms": 1 } },
-  { "name": "price_1", "key": { "price": 1 } }
 ]
 ```
 
@@ -351,6 +328,8 @@ DocumentDB supports native vector search with two index types:
 For this workshop, we'll use **IVF** for better performance with our dataset.
 
 ## 🛠️ Step 7: Implement Semantic Search
+
+📓 **Follow along in [vector-search.ipynb](../notebooks/vector-search.ipynb)** - Step 4
 
 ### Basic Vector Search
 
@@ -450,6 +429,8 @@ for idx, result in enumerate(results, 1):
 - Scores below 0.5 may be weak matches
 
 ## 🛠️ Step 8: Add Filters to Refine Search
+
+📓 **Follow along in [vector-search.ipynb](../notebooks/vector-search.ipynb)** - Step 5
 
 ### Search with Filters
 
@@ -559,6 +540,8 @@ for idx, result in enumerate(results, 1):
 ```
 
 ## 🛠️ Step 9: Experiment with Different Queries
+
+📓 **Follow along in [vector-search.ipynb](../notebooks/vector-search.ipynb)** - Step 6
 
 Try these queries to see how semantic search works:
 
