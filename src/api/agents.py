@@ -361,4 +361,4 @@ async def run_agent_query(query: str, session_id: str = "default") -> Dict[str, 
 
 def is_multi_agent_available() -> bool:
     """Check if multi-agent system is available."""
-    pass  # TODO: Replace with your implementation
+    return False  # TODO: Replace with your implementation
