@@ -241,6 +241,10 @@ Respond with ONLY one word: search, filter, recommend, or respond"""
         else:
             next_agent = 'respond'
     
+    # Guard: can't filter/recommend without search results
+    if next_agent in ('filter', 'recommend') and num_results == 0:
+        next_agent = 'search'
+    
     state['next_agent'] = next_agent
     state['messages'].append(AIMessage(content=f"Routing to: {next_agent}"))
     
