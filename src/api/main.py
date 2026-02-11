@@ -159,7 +159,7 @@ async def search(request: SearchRequest):
     Request body:
     - query: Search query string
     - limit: Maximum results (default: 10)
-    - filters: Optional filters (category, city, min_rating, max_price)
+    - filters: Optional filters (property_type, bedrooms, max_price, amenities)
     """
     try:
         results = search_listings(
@@ -307,9 +307,9 @@ async def get_listings(
             # Build query
             query = {}
             if category:
-                query['category'] = {'$regex': category, '$options': 'i'}
+                query['property_type'] = {'$regex': category, '$options': 'i'}
             if city:
-                query['city'] = {'$regex': city, '$options': 'i'}
+                query['neighborhood_overview'] = {'$regex': city, '$options': 'i'}
             
             cursor = collection.find(query).skip(skip).limit(limit)
             
@@ -323,9 +323,9 @@ async def get_listings(
             
             # Apply filters
             if category:
-                data = [d for d in data if category.lower() in d.get('category', '').lower()]
+                data = [d for d in data if category.lower() in d.get('property_type', '').lower()]
             if city:
-                data = [d for d in data if city.lower() in d.get('city', '').lower()]
+                data = [d for d in data if city.lower() in d.get('neighborhood_overview', '').lower()]
             
             from .models import normalize_listing
             return [normalize_listing(d) for d in data[skip:skip+limit]]

@@ -328,7 +328,6 @@ def search_listings(
             price_max=filters.get('price_max') or filters.get('max_price'),
             property_type=filters.get('property_type') or filters.get('category'),
             amenities=filters.get('amenities'),
-            city=filters.get('city')
         )
     
     results = []

@@ -117,22 +117,21 @@ By the end of this workshop, you'll have created:
 
 ## Dataset
 
-The workshop uses real Airbnb listing data from 5 US cities:
-- **Colorado** (CO) - Mountain destinations
-- **Illinois** (IL) - Urban listings
-- **Massachusetts** (MA) - Historic locations
-- **Ohio** (OH) - Mixed urban/suburban
-- **Texas** (TX) - Diverse markets
+The workshop uses real Airbnb listing data from **Denver, Colorado**:
+- Diverse property types (apartments, houses, condos, guesthouses)
+- Neighborhoods across the Denver metro area
+- Price range from budget to luxury
 
 Each listing includes:
 - Description and neighborhood overview
-- Amenities and property details
-- Geospatial coordinates
-- Pricing and availability
+- Amenities and property details (bedrooms, beds, bathrooms)
+- Geospatial coordinates (latitude/longitude)
+- Pricing (per night)
 - Host information
 
-**Total Records**: ~35,000 listings  
-**Format**: JSON and CSV available
+**Embedded Data**: 1,000 listings with pre-generated vectors (`data/embedded_data.json`)  
+**Raw Data**: 5,000+ listings without embeddings (`data/raw_data.json`)  
+**Format**: JSON
 
 ---
 
@@ -211,10 +210,10 @@ Each listing includes:
 - ⚠️ Error handling and clarification patterns
 
 **Challenges**:
-1. Add a Booking Agent for reservations (Medium)
-2. Create Price Negotiation Agent for alternatives (Advanced)
-3. Build Analytics Agent for market insights (Hard)
-4. Implement Multi-Modal Agent with image analysis (Very Advanced)
+1. Add a Clarification Agent for vague queries (Medium)
+2. Add Error Handling Agent for empty results (Medium)
+3. Add a Booking Agent for reservations (Hard)
+4. Implement Conversation Memory with MemorySaver (Hard)
 
 **Deliverable**: Production-ready multi-agent chat system with coordinated workflows
 

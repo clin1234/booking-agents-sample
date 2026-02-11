@@ -33,8 +33,8 @@ export function useBackendStatus(checkInterval = 30000) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      const response = await fetch(`${API_BASE_URL}/docs`, {
-        method: 'HEAD',
+      const response = await fetch(`${API_BASE_URL}/health`, {
+        method: 'GET',
         signal: controller.signal,
       });
       

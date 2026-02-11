@@ -111,7 +111,7 @@ Download the 'DocumentDB for VS Code' extension on your codespace using the VS C
 
 ---
 
-## Activity 3: Load Sample Data into DocumentDB
+## Step 3: Load Sample Data into DocumentDB
 
 Now that DocumentDB is running and connected, let's load sample data to work with throughout the workshop. You'll use the DocumentDB VS Code extension to import JSON files directly into your database.
 

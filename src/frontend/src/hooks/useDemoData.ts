@@ -52,10 +52,10 @@ export function useDemoData() {
     
     const matched = listings
       .filter(listing => 
-        listing.name.toLowerCase().includes(lowerQuery) ||
-        listing.description.toLowerCase().includes(lowerQuery) ||
-        listing.neighborhood_overview.toLowerCase().includes(lowerQuery) ||
-        listing.property_type.toLowerCase().includes(lowerQuery)
+        listing.name?.toLowerCase().includes(lowerQuery) ||
+        listing.description?.toLowerCase().includes(lowerQuery) ||
+        listing.neighborhood_overview?.toLowerCase().includes(lowerQuery) ||
+        listing.property_type?.toLowerCase().includes(lowerQuery)
       )
       .slice(0, limit)
       .map(listing => ({

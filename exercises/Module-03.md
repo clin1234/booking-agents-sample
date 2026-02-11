@@ -25,7 +25,7 @@ You'll implement the multi-agent backend that powers the application's intellige
 ### Example Multi-Agent Conversation:
 
 ```
-User: "I need a pet-friendly place in Chicago, 3 bedrooms, under $200"
+User: "I need a place with a kitchen, 2 bedrooms, under $200"
 
 [Supervisor routes to Search Agent]
 Search Agent: Performs vector search → Returns 20 listings
@@ -37,11 +37,11 @@ Recommend Agent: Ranks by balanced preference → Top 5
 Respond Agent:
 "Based on your needs, I recommend:
 
-1. **Family House in Lincoln Park** - $185/night ⭐
-   Perfect match! This 3-bedroom house welcomes pets and has a fenced yard.
+1. **Cozy Cottage in LoHi** - $161/night ⭐
+   Perfect match! This 2-bedroom guesthouse has a full kitchen and great reviews.
 
-2. **Spacious Apartment with Pet Area** - $175/night
-   Excellent value! Dedicated pet washing station and close to trails.
+2. **Spacious Apartment near Downtown** - $175/night
+   Excellent value! Fully equipped kitchen and close to restaurants.
 
 Both are well under your $200 budget. Interested in booking?"
 ```
@@ -78,7 +78,7 @@ A multi-agent system uses multiple specialized AI agents that:
 │                    Multi-Agent System                           │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  User Query: "Pet-friendly 3BR in Chicago under $200"          │
+│  User Query: "Pet-friendly 3BR in Denver under $200"           │
 │                           │                                     │
 │                           ▼                                     │
 │              ┌────────────────────────┐                        │
@@ -174,7 +174,7 @@ Define these fields on `AgentState`:
 | `messages` | `List[BaseMessage]` | Conversation history (human + AI messages) |
 | `user_query` | `str` | The user's original natural language query |
 | `search_results` | `List[Dict[str, Any]]` | Listings found by the search agent |
-| `filters` | `Dict[str, Any]` | Extracted filter criteria (price, rating, city, etc.) |
+| `filters` | `Dict[str, Any]` | Extracted filter criteria (price, property_type, bedrooms, etc.) |
 | `recommendations` | `List[Dict[str, Any]]` | Ranked/recommended listings |
 | `next_agent` | `str` | Which agent should run next (routing decision) |
 | `final_response` | `str` | The final response text to send to the user |
@@ -253,10 +253,10 @@ A `@tool`-decorated function that filters a list of listings.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `listings` | `List[Dict[str, Any]]` | Listings to filter |
-| `min_rating` | `Optional[float]` | Keep listings with `rating >= min_rating` |
 | `max_price` | `Optional[float]` | Keep listings with `price <= max_price` |
-| `category` | `Optional[str]` | Keep listings where category contains this string (case-insensitive) |
-| `city` | `Optional[str]` | Keep listings where city contains this string (case-insensitive) |
+| `property_type` | `Optional[str]` | Keep listings where property_type contains this string (case-insensitive) |
+| `min_bedrooms` | `Optional[int]` | Keep listings where `bedrooms >= min_bedrooms` |
+| `amenities` | `Optional[List[str]]` | Keep listings that have all required amenities (case-insensitive) |
 
 **Requirements:**
 - Start with a copy of the listings list
@@ -270,25 +270,28 @@ A `@tool`-decorated function that filters a list of listings.
 @tool
 def apply_filters(
     listings: List[Dict[str, Any]],
-    min_rating: Optional[float] = None,
     max_price: Optional[float] = None,
-    category: Optional[str] = None,
-    city: Optional[str] = None
+    property_type: Optional[str] = None,
+    min_bedrooms: Optional[int] = None,
+    amenities: Optional[List[str]] = None
 ) -> List[Dict[str, Any]]:
     """Apply filters to a list of listings."""
     filtered = listings.copy()
     
-    if min_rating is not None:
-        filtered = [l for l in filtered if l.get('rating', 0) >= min_rating]
-    
     if max_price is not None:
         filtered = [l for l in filtered if l.get('price', float('inf')) <= max_price]
     
-    if category:
-        filtered = [l for l in filtered if category.lower() in l.get('category', '').lower()]
+    if property_type:
+        filtered = [l for l in filtered if property_type.lower() in l.get('property_type', '').lower()]
     
-    if city:
-        filtered = [l for l in filtered if city.lower() in l.get('city', '').lower()]
+    if min_bedrooms is not None:
+        filtered = [l for l in filtered if (l.get('bedrooms') or 0) >= min_bedrooms]
+    
+    if amenities:
+        def has_amenities(listing):
+            listing_amenities = [a.lower() for a in listing.get('amenities', [])]
+            return all(a.lower() in listing_amenities for a in amenities)
+        filtered = [l for l in filtered if has_amenities(l)]
     
     return filtered
 ```
@@ -307,8 +310,8 @@ A `@tool`-decorated function that ranks listings by user preference.
 
 **Ranking strategies:**
 - `"budget"` — Sort by price ascending (cheapest first), return top 5
-- `"quality"` — Sort by rating descending (best first), return top 5
-- `"balanced"` — Score each listing as `(rating / 5.0) - (price / 500.0)`, sort descending, return top 5
+- `"quality"` — Sort by score descending (most relevant first), return top 5
+- `"balanced"` — Rank each listing as `score - (price / 500.0)`, sort descending, return top 5
 
 <details>
 <summary>🔑 Solution</summary>
@@ -326,13 +329,13 @@ def get_recommendations(
     if preference == "budget":
         return sorted(listings, key=lambda x: x.get('price', float('inf')))[:5]
     elif preference == "quality":
-        return sorted(listings, key=lambda x: x.get('rating', 0), reverse=True)[:5]
+        return sorted(listings, key=lambda x: x.get('score', 0), reverse=True)[:5]
     else:
-        def score(l):
-            rating = l.get('rating', 3.0)
+        def rank(l):
+            relevance = l.get('score', 0.5)
             price = l.get('price', 100)
-            return (rating / 5.0) - (price / 500.0)
-        return sorted(listings, key=score, reverse=True)[:5]
+            return relevance - (price / 500.0)
+        return sorted(listings, key=rank, reverse=True)[:5]
 ```
 
 </details>
@@ -352,9 +355,9 @@ The supervisor is the "brain" of the system — it decides which specialist shou
 **Requirements:**
 1. Call `create_llm()` to get an LLM instance
 2. Build a system prompt describing the four routing options:
-   - `"search"` — user wants to find listings
-   - `"filter"` — user wants to apply constraints
-   - `"recommend"` — user wants recommendations
+   - `"search"` — user wants to find listings (e.g., "find apartments near downtown Denver")
+   - `"filter"` — user wants to apply constraints (e.g., "under $150 with 2 bedrooms")
+   - `"recommend"` — user wants recommendations (e.g., "what's the best value?")
    - `"respond"` — ready to give a final answer
 3. Include the current state summary (number of results, filters, recommendations)
 4. Ask the LLM to respond with ONLY one word
@@ -381,8 +384,8 @@ def supervisor_node(state: AgentState) -> AgentState:
     
 Analyze the user's query and decide which specialist agent should handle it:
 
-- "search": The user wants to find listings (e.g., "find restaurants in Seattle")
-- "filter": The user wants to filter results (e.g., "only show 4+ star places")
+- "search": The user wants to find listings (e.g., "find apartments near downtown Denver")
+- "filter": The user wants to filter results (e.g., "only show places under $150 with 2 bedrooms")
 - "recommend": The user wants recommendations (e.g., "what's the best option?")
 - "respond": Ready to give final response to user
 
@@ -473,9 +476,9 @@ The filter agent extracts constraints from the user's query and applies them to 
 **Requirements:**
 1. Call `create_llm()` to get an LLM instance
 2. Send a system prompt asking the LLM to extract filter criteria as JSON:
-   - Fields: `min_rating` (number), `max_price` (number), `category` (string), `city` (string)
-   - Example: `{"min_rating": 4.0, "city": "Seattle"}`
-3. Parse the JSON response with `json.loads()`
+   - Fields: `max_price` (number), `property_type` (string), `min_bedrooms` (integer), `amenities` (array of strings)
+   - Example: `{"max_price": 200, "property_type": "Apartment", "min_bedrooms": 2}`
+3. Parse the JSON response with `json.loads()` (remember to `import json`)
 4. Store the parsed filters in `state['filters']`
 5. Call `apply_filters.invoke()` with the search results and parsed filters
 6. Update `state['search_results']` with the filtered results
@@ -494,12 +497,12 @@ def filter_node(state: AgentState) -> AgentState:
     system_prompt = """Extract filter criteria from the user query.
     
 Respond in JSON format with these optional fields:
-- min_rating: number (1-5)
-- max_price: number
-- category: string
-- city: string
+- max_price: number (maximum price per night)
+- property_type: string (e.g. "Apartment", "House", "Condo", "Guesthouse")
+- min_bedrooms: integer (minimum number of bedrooms)
+- amenities: array of strings (e.g. ["Wifi", "Kitchen", "Free parking"])
 
-Example: {"min_rating": 4.0, "city": "Seattle"}
+Example: {"max_price": 200, "property_type": "Apartment", "min_bedrooms": 2}
 
 If no clear filters, respond with: {}"""
 
@@ -598,7 +601,7 @@ The response agent generates the final user-facing message.
 1. Call `create_llm()` to get an LLM instance
 2. Get recommendations from state (fall back to `search_results[:5]` if empty)
 3. If there are no results at all, set a "no results found" message and return early
-4. Format the top 5 listings into a context string with name, description snippet, rating, and price
+4. Format the top 5 listings into a context string with name, description snippet, property type, bedrooms, and price
 5. Build a system prompt asking the LLM to be a friendly booking assistant and keep the response under 200 words
 6. Invoke the LLM and store the response in `state['final_response']`
 7. On error, fall back to the raw listings context string
@@ -619,7 +622,8 @@ def respond_node(state: AgentState) -> AgentState:
     
     listings_context = "\n".join([
         f"- {r.get('name', 'Unknown')}: {r.get('description', '')[:100]}... "
-        f"(Rating: {r.get('rating', 'N/A')}, Price: ${r.get('price', 'N/A')})"
+        f"(Type: {r.get('property_type', 'N/A')}, Bedrooms: {r.get('bedrooms', 'N/A')}, "
+        f"Price: ${r.get('price', 'N/A')}/night)"
         for r in recs[:5]
     ])
     
@@ -881,7 +885,7 @@ pip install langgraph langchain langchain-openai
 ```bash
 curl -X POST http://localhost:8000/query_message \
   -H "Content-Type: application/json" \
-  -d '{"message": "Find me a cozy place in Chicago", "session_id": "test1"}'
+  -d '{"message": "Find me a cozy place near downtown Denver", "session_id": "test1"}'
 ```
 
 **Complex multi-criteria query:**
@@ -902,10 +906,10 @@ curl -X POST http://localhost:8000/query_message \
 
 Open http://localhost:3000 and use the chat panel. Try queries that exercise different agents:
 
-1. **Search Agent**: "Show me apartments in Boston"
-2. **Filter Agent**: "Only show places rated 4 stars or higher"
+1. **Search Agent**: "Show me apartments in Denver"
+2. **Filter Agent**: "Only show places with at least 2 bedrooms under $150"
 3. **Recommend Agent**: "What's the best value option?"
-4. **Multi-agent pipeline**: "Luxury 2BR condo in Seattle with a view, under $300"
+4. **Multi-agent pipeline**: "2-bedroom apartment with kitchen and parking, under $200"
 
 ### 7e. What to check for
 
@@ -967,7 +971,7 @@ Add it as a new routing option in the supervisor.
 
 The current system treats each query independently. Add conversation memory so follow-up questions work:
 
-- "Find me places in Chicago" → searches normally
+- "Find me places in Denver" → searches normally
 - "Do any of those have parking?" → references previous results
 
 **Hint:** Use `MemorySaver` from LangGraph and pass a `thread_id` config when invoking the graph.

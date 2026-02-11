@@ -92,37 +92,40 @@ def create_search_tool(search_fn):
 @tool
 def apply_filters(
     listings: List[Dict[str, Any]],
-    min_rating: Optional[float] = None,
     max_price: Optional[float] = None,
-    category: Optional[str] = None,
-    city: Optional[str] = None
+    property_type: Optional[str] = None,
+    min_bedrooms: Optional[int] = None,
+    amenities: Optional[List[str]] = None
 ) -> List[Dict[str, Any]]:
     """
     Apply filters to a list of listings.
     
     Args:
         listings: List of listing dictionaries
-        min_rating: Minimum rating filter
-        max_price: Maximum price filter  
-        category: Category filter
-        city: City filter
+        max_price: Maximum price filter
+        property_type: Property type substring match (e.g. "Apartment", "House")
+        min_bedrooms: Minimum number of bedrooms
+        amenities: Required amenities (e.g. ["Wifi", "Kitchen"])
         
     Returns:
         Filtered list of listings
     """
     filtered = listings.copy()
     
-    if min_rating is not None:
-        filtered = [l for l in filtered if l.get('rating', 0) >= min_rating]
-    
     if max_price is not None:
         filtered = [l for l in filtered if l.get('price', float('inf')) <= max_price]
     
-    if category:
-        filtered = [l for l in filtered if category.lower() in l.get('category', '').lower()]
+    if property_type:
+        filtered = [l for l in filtered if property_type.lower() in l.get('property_type', '').lower()]
     
-    if city:
-        filtered = [l for l in filtered if city.lower() in l.get('city', '').lower()]
+    if min_bedrooms is not None:
+        filtered = [l for l in filtered if (l.get('bedrooms') or 0) >= min_bedrooms]
+    
+    if amenities:
+        def has_amenities(listing):
+            listing_amenities = [a.lower() for a in listing.get('amenities', [])]
+            return all(a.lower() in listing_amenities for a in amenities)
+        filtered = [l for l in filtered if has_amenities(l)]
     
     return filtered
 
@@ -149,16 +152,16 @@ def get_recommendations(
         # Sort by price, lowest first
         return sorted(listings, key=lambda x: x.get('price', float('inf')))[:5]
     elif preference == "quality":
-        # Sort by rating, highest first
-        return sorted(listings, key=lambda x: x.get('rating', 0), reverse=True)[:5]
+        # Sort by search relevance score, highest first
+        return sorted(listings, key=lambda x: x.get('score', 0), reverse=True)[:5]
     else:
-        # Balanced: combine rating and price into a score
-        def score(l):
-            rating = l.get('rating', 3.0)
+        # Balanced: combine relevance score and price
+        def rank(l):
+            relevance = l.get('score', 0.5)
             price = l.get('price', 100)
             # Normalize: higher is better
-            return (rating / 5.0) - (price / 500.0)
-        return sorted(listings, key=score, reverse=True)[:5]
+            return relevance - (price / 500.0)
+        return sorted(listings, key=rank, reverse=True)[:5]
 
 
 # ============================================================================
@@ -199,8 +202,8 @@ def supervisor_node(state: AgentState) -> AgentState:
     
 Analyze the user's query and decide which specialist agent should handle it:
 
-- "search": The user wants to find listings (e.g., "find restaurants in Seattle")
-- "filter": The user wants to filter results (e.g., "only show 4+ star places")
+- "search": The user wants to find listings (e.g., "find apartments near downtown Denver")
+- "filter": The user wants to filter results (e.g., "only show places under $150 with 2 bedrooms")
 - "recommend": The user wants recommendations (e.g., "what's the best option?")
 - "respond": Ready to give final response to user
 
@@ -278,12 +281,12 @@ def filter_node(state: AgentState) -> AgentState:
     system_prompt = """Extract filter criteria from the user query.
     
 Respond in JSON format with these optional fields:
-- min_rating: number (1-5)
-- max_price: number
-- category: string
-- city: string
+- max_price: number (maximum price per night)
+- property_type: string (e.g. "Apartment", "House", "Condo", "Guesthouse")
+- min_bedrooms: integer (minimum number of bedrooms)
+- amenities: array of strings (e.g. ["Wifi", "Kitchen", "Free parking"])
 
-Example: {"min_rating": 4.0, "city": "Seattle"}
+Example: {"max_price": 200, "property_type": "Apartment", "min_bedrooms": 2}
 
 If no clear filters, respond with: {}"""
 
@@ -372,7 +375,8 @@ def respond_node(state: AgentState) -> AgentState:
     
     listings_context = "\n".join([
         f"- {r.get('name', 'Unknown')}: {r.get('description', '')[:100]}... "
-        f"(Rating: {r.get('rating', 'N/A')}, Price: ${r.get('price', 'N/A')})"
+        f"(Type: {r.get('property_type', 'N/A')}, Bedrooms: {r.get('bedrooms', 'N/A')}, "
+        f"Price: ${r.get('price', 'N/A')}/night)"
         for r in recs[:5]
     ])
     

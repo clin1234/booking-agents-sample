@@ -92,6 +92,7 @@ class DatabaseConnection:
             paths = [
                 os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'embedded_data.json'),
                 os.path.join(os.path.dirname(__file__), 'data', 'embedded_data.json'),
+                '/data/embedded_data.json',
                 '/workspaces/booking-agents-sample/data/embedded_data.json',
             ]
             

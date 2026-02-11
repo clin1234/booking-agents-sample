@@ -25,22 +25,22 @@ You'll implement the chat backend that powers the application's AI assistant. Wh
 ### Example Conversation:
 
 ```
-User: "I'm looking for a place in Chicago for a weekend getaway"
+User: "I'm looking for a place in Denver for a weekend getaway"
 
-AI: "I found some great options in Chicago! Here are my top recommendations:
+AI: "I found some great options in Denver! Here are my top recommendations:
 
-1. **Cozy Loft in Wicker Park** - $125/night
+1. **Cozy Loft in LoHi** - $125/night
    Perfect for a weekend escape! This modern loft features exposed brick, 
    a fully equipped kitchen, and is walking distance to trendy restaurants.
 
-2. **Sunny Studio near Navy Pier** - $95/night
-   Great location for tourists! Close to Lake Michigan and downtown.
+2. **Sunny Studio near RiNo** - $95/night
+   Great location for exploring! Close to art galleries and downtown.
    
 Would you like more details about any of these?"
 
 User: "Does the first one have parking?"
 
-AI: "Yes! The Cozy Loft in Wicker Park includes free street parking..."
+AI: "Yes! The Cozy Loft in LoHi includes free street parking..."
 ```
 
 ## 📚 Concept: Retrieval-Augmented Generation (RAG)
@@ -76,7 +76,7 @@ With RAG:
 │  ┌──────────────────┐                                           │
 │  │ "Find cozy       │                                           │
 │  │  apartments in   │                                           │
-│  │  Chicago"        │                                           │
+│  │  Denver"         │                                           │
 │  └────────┬─────────┘                                           │
 │           │                                                      │
 │           ▼                                                      │
@@ -99,8 +99,8 @@ With RAG:
 │  4. Context Formatting                                           │
 │  ┌──────────────────────────────────────────┐                  │
 │  │ Top 5 listings as readable text:         │                  │
-│  │ 1. Loft in Wicker Park - $125           │                  │
-│  │ 2. Studio near Navy Pier - $95          │                  │
+│  │ 1. Loft in LoHi - $125                  │                  │
+│  │ 2. Studio near RiNo - $95               │                  │
 │  │ ...                                      │                  │
 │  └────────┬─────────────────────────────────┘                  │
 │           │                                                      │
@@ -241,7 +241,7 @@ You need three strings. The first two are **prompt templates** — they contain 
 
 This prompt takes a conversation history and a follow-up question, and asks the LLM to rephrase the follow-up into a **standalone search query**.
 
-**Why?** When a user says "Does the first one have parking?", the vector search needs a self-contained query like "Does the Chicago apartment have parking?" to find relevant results.
+**Why?** When a user says "Does the first one have parking?", the vector search needs a self-contained query like "Does the Denver apartment have parking?" to find relevant results.
 
 **Required placeholders:** `{chat_history}` and `{question}`
 
@@ -333,15 +333,15 @@ A list of `SearchResult` objects. Each has:
 A formatted string like:
 
 ```
-1. Cozy Loft in Wicker Park
+1. Cozy Loft in LoHi
    Price: $125/night
    Type: Apartment
    Bedrooms: 2 | Beds: 3
    Amenities: Wifi, Kitchen, Heating, Air conditioning, Washer
-   Description: Beautiful loft in the heart of Wicker Park with exposed brick...
+   Description: Beautiful loft in the heart of LoHi with exposed brick...
    Similarity Score: 0.87
 
-2. Sunny Studio near Navy Pier
+2. Sunny Studio near RiNo
    ...
 ```
 
@@ -431,14 +431,14 @@ Wrap the main logic in a `try/except`. On failure, fall back to returning plain 
 
 Consider this conversation:
 ```
-User: "Find me a place in Chicago with parking"
+User: "Find me a place in Denver with parking"
 AI: "Here are 3 options..."
 User: "Does the first one have a kitchen?"
 ```
 
-Without rephrasing, the vector search for "Does the first one have a kitchen?" would find listings about kitchens everywhere — not Chicago-specific results. 
+Without rephrasing, the vector search for "Does the first one have a kitchen?" would find listings about kitchens everywhere — not Denver-specific results. 
 
-The rephrase step rewrites it to something like: "Does the Chicago apartment listed first have a kitchen?" — giving the search engine much better context.
+The rephrase step rewrites it to something like: "Does the Denver apartment listed first have a kitchen?" — giving the search engine much better context.
 
 <details>
 <summary>🔑 Solution</summary>
@@ -539,7 +539,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```bash
 curl -X POST http://localhost:8000/query_message \
   -H "Content-Type: application/json" \
-  -d '{"message": "Find me a cozy place in Chicago", "session_id": "test1"}'
+  -d '{"message": "Find me a cozy place in Denver", "session_id": "test1"}'
 ```
 
 **Follow-up question** (same session_id):
@@ -558,7 +558,7 @@ curl http://localhost:8000/chat/history?session_id=test1
 
 Open http://localhost:3000 and use the chat panel on the right side. Try a multi-turn conversation:
 
-1. "I'm looking for a place in Chicago for a weekend getaway"
+1. "I'm looking for a place in Denver for a weekend getaway"
 2. "Does the first one have parking?"
 3. "What about the price? Is it under $150?"
 
@@ -616,7 +616,7 @@ Modify `CONTEXT_PROMPT` to detect the user's tone and adjust accordingly:
 ### Challenge 4: Extract Filters from Natural Language (Hard)
 
 Before searching, use the LLM to extract structured filters from the user's message:
-- "3 bedroom house in Chicago under $200 with parking"
+- "3 bedroom house in Denver under $200 with parking"
 - → `{bedrooms: 3, price_max: 200, amenities: ["parking"]}`
 
 Then pass those filters to `search_listings(query=..., filters=extracted_filters)`.

@@ -68,7 +68,6 @@ class SearchFilters(BaseModel):
     price_max: Optional[float] = Field(None, ge=0, description="Maximum price")
     property_type: Optional[str] = Field(None, description="Property type filter")
     amenities: Optional[List[str]] = Field(None, description="Required amenities")
-    city: Optional[str] = Field(None, description="City/market filter")
 
 
 class SearchRequest(BaseModel):

@@ -14,19 +14,20 @@ services:
       - "8000:8000"
     environment:
       - DOCUMENTDB_CONNECTION_STRING=mongodb://admin:password123@host.docker.internal:10260/?tls=true&tlsAllowInvalidCertificates=true&authMechanism=SCRAM-SHA-256
-      - DATABASE_NAME=${DATABASE_NAME:-contoso_bookings}
+      - DATABASE_NAME=${DATABASE_NAME:-db}
       - COLLECTION_NAME=${COLLECTION_NAME:-listings}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
       - OPENAI_CHAT_MODEL=${OPENAI_CHAT_MODEL:-gpt-3.5-turbo}
     volumes:
       - ./src/api:/app
+      - ./data:/data
     depends_on:
       documentdb:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3

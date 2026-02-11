@@ -373,7 +373,7 @@ def search_listings(query, limit=5):
                 "bedrooms": 1,
                 "beds": 1,
                 "price": 1,
-                "address.market": 1,
+                "neighborhood_overview": 1,
                 "amenities": 1,
                 "searchScore": {"$meta": "searchScore"}
             }
@@ -393,7 +393,7 @@ print(f"📊 Found {len(results)} results\n")
 for idx, result in enumerate(results, 1):
     print(f"{idx}. {result['name']}")
     print(f"   Property Type: {result.get('property_type', 'N/A')}")
-    print(f"   Location: {result.get('address', {}).get('market', 'N/A')}")
+    print(f"   Neighborhood: {result.get('neighborhood_overview', 'N/A')[:80]}")
     print(f"   Bedrooms: {result.get('bedrooms', 'N/A')} | Price: ${result.get('price', 'N/A')}")
     print(f"   Similarity Score: {result.get('searchScore', 0):.4f}")
     print(f"   Preview: {result.get('description', '')[:100]}...")
@@ -407,14 +407,14 @@ for idx, result in enumerate(results, 1):
 
 1. Downtown Studio with Parking
    Property Type: Apartment
-   Location: Chicago
+   Neighborhood: Located in a vibrant area near downtown Denver...
    Bedrooms: 1 | Price: $95.0
    Similarity Score: 0.8523
    Preview: Cozy studio apartment in the heart of downtown. Free parking included. Walking distance to...
 
 2. City Center Apartment
    Property Type: Apartment
-   Location: Denver
+   Neighborhood: This quiet neighborhood is close to restaurants, shops, and parks...
    Bedrooms: 1 | Price: $120.0
    Similarity Score: 0.8201
    Preview: Modern apartment with dedicated parking spot. Located near downtown shopping and dining...
@@ -441,7 +441,7 @@ def search_listings_with_filters(query, filters=None, limit=5):
     
     Args:
         query (str): Natural language search query
-        filters (dict): Optional filters (bedrooms, price_max, market, amenities)
+        filters (dict): Optional filters (bedrooms, price_max, neighborhood, amenities)
         limit (int): Maximum number of results to return
         
     Returns:
@@ -464,8 +464,11 @@ def search_listings_with_filters(query, filters=None, limit=5):
         if 'price_max' in filters:
             match_conditions['price'] = {"$lte": filters['price_max']}
         
-        if 'market' in filters:
-            match_conditions['address.market'] = filters['market']
+        if 'neighborhood' in filters:
+            match_conditions['neighborhood_overview'] = {
+                "$regex": filters['neighborhood'],
+                "$options": "i"
+            }
         
         if 'amenities' in filters:
             # Amenities is a list, so we check if all required amenities are present
@@ -500,7 +503,7 @@ def search_listings_with_filters(query, filters=None, limit=5):
                 "bedrooms": 1,
                 "beds": 1,
                 "price": 1,
-                "address.market": 1,
+                "neighborhood_overview": 1,
                 "amenities": 1,
                 "searchScore": {"$meta": "searchScore"}
             }
@@ -531,7 +534,7 @@ print(f"\n📊 Found {len(results)} results\n")
 for idx, result in enumerate(results, 1):
     print(f"{idx}. {result['name']}")
     print(f"   Property Type: {result.get('property_type', 'N/A')}")
-    print(f"   Location: {result.get('address', {}).get('market', 'N/A')}")
+    print(f"   Neighborhood: {result.get('neighborhood_overview', 'N/A')[:80]}")
     print(f"   Bedrooms: {result.get('bedrooms', 'N/A')} | Price: ${result.get('price', 'N/A')}")
     print(f"   Similarity Score: {result.get('searchScore', 0):.4f}")
     amenities_preview = ', '.join(result.get('amenities', [])[:5])
@@ -695,27 +698,25 @@ if 'property_type' in filters:
 Add support for searching within a radius of a given location.
 
 **Requirements:**
-- Accept `location` (coordinates) and `radius_km` in filters
-- Use MongoDB's `$geoWithin` operator with `$centerSphere`
-- Test with Chicago coordinates: `{"location": [-87.6298, 41.8781], "radius_km": 10}`
+- Accept `location` (coordinates as `[lng, lat]`) and `radius_km` in filters
+- Note: Our data uses separate `latitude`/`longitude` fields, so use a bounding-box approach
+- Test with Denver coordinates: `{"location": [-104.9903, 39.7392], "radius_km": 10}`
 
 <details>
 <summary>💡 Hint</summary>
 
-```python
-if 'location' in filters and 'radius_km' in filters:
-    # MongoDB uses radians: radius_in_radians = radius_km / 6378.1 (Earth's radius in km)
-    radius_radians = filters['radius_km'] / 6378.1
-    match_conditions['address.location'] = {
-        "$geoWithin": {
-            "$centerSphere": [filters['location'], radius_radians]
-        }
-    }
-```
+Since our data has separate `latitude`/`longitude` fields (not GeoJSON), use a bounding box approach:
 
-Note: You'll need to create a geospatial index first:
 ```python
-collection.create_index([("address.location", "2dsphere")])
+import math
+
+if 'location' in filters and 'radius_km' in filters:
+    lng, lat = filters['location']
+    # Approximate degrees per km at this latitude
+    lat_delta = filters['radius_km'] / 111.0
+    lng_delta = filters['radius_km'] / (111.0 * abs(math.cos(math.radians(lat))))
+    match_conditions['latitude'] = {"$gte": lat - lat_delta, "$lte": lat + lat_delta}
+    match_conditions['longitude'] = {"$gte": lng - lng_delta, "$lte": lng + lng_delta}
 ```
 </details>
 

@@ -92,17 +92,17 @@ def create_search_tool(search_fn):
 # then returns only the listings that pass all filters.
 #
 # Parameters:
-#   - listings:   List[Dict[str, Any]]      — the listings to filter
-#   - min_rating: Optional[float]           — minimum rating (1–5)
-#   - max_price:  Optional[float]           — maximum price
-#   - category:   Optional[str]             — category substring match
-#   - city:       Optional[str]             — city substring match
+#   - listings:      List[Dict[str, Any]]      — the listings to filter
+#   - max_price:     Optional[float]           — maximum price per night
+#   - property_type: Optional[str]             — property type substring match
+#   - min_bedrooms:  Optional[int]             — minimum number of bedrooms
+#   - amenities:     Optional[List[str]]       — required amenities
 #
 # Filter logic:
-#   - min_rating: keep listings where rating >= min_rating
-#   - max_price:  keep listings where price <= max_price
-#   - category:   keep listings where category contains the string (case-insensitive)
-#   - city:       keep listings where city contains the string (case-insensitive)
+#   - max_price:     keep listings where price <= max_price
+#   - property_type: keep listings where property_type contains the string (case-insensitive)
+#   - min_bedrooms:  keep listings where bedrooms >= min_bedrooms
+#   - amenities:     keep listings where all required amenities are present (case-insensitive)
 
 # Uncomment and implement:
 # @tool
@@ -123,8 +123,8 @@ def create_search_tool(search_fn):
 #
 # Ranking strategies:
 #   - "budget":   sort by price ascending (cheapest first)
-#   - "quality":  sort by rating descending (best first)
-#   - "balanced": score = (rating / 5.0) - (price / 500.0), sort descending
+#   - "quality":  sort by score descending (most relevant first)
+#   - "balanced": rank = score - (price / 500.0), sort descending
 
 # Uncomment and implement:
 # @tool
@@ -172,9 +172,9 @@ def create_llm():
 # It should:
 #   1. Call create_llm() to get an LLM instance
 #   2. Build a system prompt that describes the routing options:
-#      - "search":    user wants to find listings
-#      - "filter":    user wants to filter/constrain results
-#      - "recommend": user wants recommendations
+#      - "search":    user wants to find listings (e.g., "find apartments near downtown Denver")
+#      - "filter":    user wants to filter/constrain results (e.g., "under $150 with 2 bedrooms")
+#      - "recommend": user wants recommendations (e.g., "what's the best option?")
 #      - "respond":   ready to give a final response
 #   3. Include current state info (num results, filters, num recommendations)
 #   4. Ask the LLM to respond with ONLY one word
@@ -218,8 +218,8 @@ def search_node(state: AgentState) -> AgentState:
 # It should:
 #   1. Call create_llm() to get an LLM instance
 #   2. Use a system prompt to extract filter criteria as JSON from the user query
-#      (fields: min_rating, max_price, category, city)
-#   3. Parse the JSON response
+#      (fields: max_price, property_type, min_bedrooms, amenities)
+#   3. Parse the JSON response (import json, then json.loads())
 #   4. Store filters in state['filters']
 #   5. Call apply_filters with the search_results and parsed filters
 #   6. Update state['search_results'] with the filtered results
