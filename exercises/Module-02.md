@@ -520,6 +520,10 @@ Now let's verify everything works end-to-end.
 
 ### 6a. Restart the API
 
+**Option A (recommended): Refresh the frontend**
+Hit `Ctrl + R` on PC or `Cmd + R` on Mac
+
+**Option B: Refresh the API**
 ```bash
 cd src/api
 uvicorn main:app --reload --host 0.0.0.0 --port 8000

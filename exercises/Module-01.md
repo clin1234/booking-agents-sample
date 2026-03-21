@@ -80,9 +80,6 @@ You'll implement a semantic search system that allows users to search for Airbnb
 
 ---
 
-> **📍 Note:** Steps 1-5 are **optional** and require an OpenAI API key to run, since they call the OpenAI Embedding API to generate vectors. If you don't have an API key, don't worry — the pre-embedded data in `data/embedded_data.json` already contains all the vectors you need. You can read through Steps 1-5 to understand the concepts, then **[skip to Step 6](#step-6-create-vector-index-using-the-documentdb-for-vs-code-extension)** to start building with the pre-embedded data.
-
-
 ## 🛠️ Step 1: Understanding the Data
 
 Let's first explore the dataset structure in the **[Jupyter Notebook](../notebooks/generate-embeddings.ipynb)**.
@@ -332,7 +329,7 @@ For this workshop, we'll use **IVF** for better performance with our dataset.
 
 ## 🛠️ Step 7: Implement Semantic Search
 
-📓 **Follow along in [vector-search.ipynb](../notebooks/vector-search.ipynb)** - Step 4
+📓 **Follow along in [vector-search.ipynb](../notebooks/vector-search.ipynb)** - Steps 1-4
 
 ### Basic Vector Search
 
