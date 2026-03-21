@@ -25,6 +25,3 @@ langgraph>=0.0.20
 
 # Development Tools
 ipykernel>=6.0.0
-
-# Optional: Azure OpenAI Support
-# azure-identity>=1.15.0

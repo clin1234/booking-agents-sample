@@ -1,9 +1,9 @@
 # Module 3: Multi-Agent System with LangGraph
 
-### 📂 **You'll be editing:** [`src/api/agents.py`](../src/api/agents.py)
-### ✅ **Solution:** [`solutions/agents_solution.py`](../solutions/agents_solution.py) — check here if you get stuck
+### You'll be editing: [`src/api/agents.py`](../src/api/agents.py)
+### Solution: [`solutions/agents_solution.py`](../solutions/agents_solution.py) — check here if you get stuck
 
-## 📋 Learning Objectives
+## Learning Objectives
 
 By the end of this module, you will:
 - Understand multi-agent system architecture and benefits
@@ -13,10 +13,10 @@ By the end of this module, you will:
 - Build a supervisor agent that routes tasks intelligently
 - Create a production-ready multi-agent chat system
 
-## 🎯 What You'll Build
+## What You'll Build
 
 You'll implement the multi-agent backend that powers the application's intelligent search. When a user types a complex query, your code will:
-1. Route the query to the right specialist agent via a **supervisor**
+1. Route the query to the search pipeline via a **supervisor**
 2. **Search** for listings using vector search
 3. **Filter** results based on extracted constraints
 4. **Recommend** top listings based on user preferences
@@ -27,17 +27,20 @@ You'll implement the multi-agent backend that powers the application's intellige
 ```
 User: "I need a place with a kitchen, 2 bedrooms, under $200"
 
-[Supervisor routes to Search Agent]
-Search Agent: Performs vector search → Returns 20 listings
+[Supervisor routes to Search]
+Search Agent: Performs vector search -> Returns 20 listings
 
-[Search routes to Recommend Agent]
-Recommend Agent: Ranks by balanced preference → Top 5
+[Search routes to Filter]
+Filter Agent: Extracts "kitchen, 2 bedrooms, under $200" -> Applies filters -> 8 remain
 
-[Recommend routes to Respond Agent]
+[Filter routes to Recommend]
+Recommend Agent: Ranks by balanced preference -> Top 5
+
+[Recommend routes to Respond]
 Respond Agent:
 "Based on your needs, I recommend:
 
-1. **Cozy Cottage in LoHi** - $161/night ⭐
+1. **Cozy Cottage in LoHi** - $161/night
    Perfect match! This 2-bedroom guesthouse has a full kitchen and great reviews.
 
 2. **Spacious Apartment near Downtown** - $175/night
@@ -46,7 +49,7 @@ Respond Agent:
 Both are well under your $200 budget. Interested in booking?"
 ```
 
-## 📚 Concept: Multi-Agent Systems
+## Concept: Multi-Agent Systems
 
 ### What are Multi-Agent Systems?
 
@@ -59,53 +62,61 @@ A multi-agent system uses multiple specialized AI agents that:
 ### Why Use Multi-Agent Systems?
 
 **Single Agent Approach:**
-❌ One agent tries to do everything
-❌ Complex prompts that confuse the model
-❌ Difficult to maintain and debug
-❌ Limited by context window size
+- One agent tries to do everything
+- Complex prompts that confuse the model
+- Difficult to maintain and debug
+- Limited by context window size
 
 **Multi-Agent Approach:**
-✅ Specialized agents with clear responsibilities
-✅ Simpler, focused prompts per agent
-✅ Easier to test and improve individual components
-✅ More scalable and maintainable
-✅ Better error handling and recovery
+- Specialized agents with clear responsibilities
+- Simpler, focused prompts per agent
+- Easier to test and improve individual components
+- More scalable and maintainable
+- Better error handling and recovery
 
 ### Multi-Agent Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Multi-Agent System                           │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  User Query: "Pet-friendly 3BR in Denver under $200"           │
-│                           │                                     │
-│                           ▼                                     │
-│              ┌────────────────────────┐                        │
-│              │   Supervisor Agent     │                        │
-│              │  (Task Router)         │                        │
-│              └────────┬───────────────┘                        │
-│                       │                                         │
-│          ┌────────────┼────────────┬──────────┐               │
-│          │            │            │          │               │
-│          ▼            ▼            ▼          ▼               │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐        │
-│  │ Search   │ │ Filter   │ │Recommend │ │ Respond  │        │
-│  │ Agent    │ │ Agent    │ │ Agent    │ │ Agent    │        │
-│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └──────────┘        │
-│       └────────────┴────────────┘                             │
-│                           │                                     │
-│                           ▼                                     │
-│              ┌────────────────────────┐                        │
-│              │   Shared State         │                        │
-│              │  - Messages            │                        │
-│              │  - Search Results      │                        │
-│              │  - Filters             │                        │
-│              │  - Recommendations     │                        │
-│              │  - Final Response      │                        │
-│              └────────────────────────┘                        │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+                    Multi-Agent System
+ ─────────────────────────────────────────────────────────────
+
+  User Query: "Pet-friendly 3BR in Denver under $200"
+                           |
+                           v
+              ┌────────────────────────┐
+              │   Supervisor Agent     │
+              │  (Pipeline Router)     │
+              └────────┬───────────────┘
+                       |
+                       v
+              ┌────────────────────────┐
+              │   Search Agent         │  Finds 20 listings via vector search
+              └────────┬───────────────┘
+                       |
+                       v
+              ┌────────────────────────┐
+              │   Filter Agent         │  Extracts constraints, narrows to 8
+              └────────┬───────────────┘
+                       |
+                       v
+              ┌────────────────────────┐
+              │   Recommend Agent      │  Ranks by preference, picks top 5
+              └────────┬───────────────┘
+                       |
+                       v
+              ┌────────────────────────┐
+              │   Respond Agent        │  Generates friendly response
+              └────────────────────────┘
+                       |
+                       v
+              ┌────────────────────────┐
+              │   Shared State         │
+              │  - Messages            │
+              │  - Search Results      │
+              │  - Filters             │
+              │  - Recommendations     │
+              │  - Final Response      │
+              └────────────────────────┘
 ```
 
 ### LangGraph
@@ -124,7 +135,7 @@ A multi-agent system uses multiple specialized AI agents that:
 
 ---
 
-## 🛠️ Step 1: Explore the Existing Code
+## Step 1: Explore the Existing Code
 
 Before writing anything, take a few minutes to understand how the pieces fit together.
 
@@ -150,7 +161,7 @@ Open [`src/api/main.py`](../src/api/main.py) and find the `/query_message` endpo
 Open [`src/api/agents.py`](../src/api/agents.py). This is where you'll work for the rest of Module 3. You'll see:
 - Imports and LangGraph availability check (already done)
 - `AgentState` TypedDict (Step 2 — TODO)
-- Agent tools: `create_search_tool`, `apply_filters`, `get_recommendations` (Step 3 — TODO)
+- Agent tools: `apply_filters`, `get_recommendations` (Step 3 — TODO)
 - Agent nodes: `supervisor_node`, `search_node`, `filter_node`, `recommend_node`, `respond_node` (Step 4 — TODO)
 - `build_agent_graph()` (Step 5 — TODO)
 - `run_agent_query()` and `is_multi_agent_available()` (Step 6 — TODO)
@@ -159,11 +170,11 @@ The `create_llm()` function and `get_agent_graph()` helper are already implement
 
 ---
 
-## 🛠️ Step 2: Define the Agent State
+## Step 2: Define the Agent State
 
-📂 **Edit:** [`src/api/agents.py`](../src/api/agents.py) — find the `AgentState` class
+**Edit:** [`src/api/agents.py`](../src/api/agents.py) — find the `AgentState` class
 
-The `AgentState` is a `TypedDict` that acts as the shared memory for all agents. Every agent function receives this state, reads what it needs, does its work, and writes its results back.
+The `AgentState` is a `TypedDict` that acts as the shared memory for all agents. Every agent function receives this state, reads what it needs, does its work, and returns the fields it changed.
 
 ### Requirements
 
@@ -171,7 +182,7 @@ Define these fields on `AgentState`:
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `messages` | `List[BaseMessage]` | Conversation history (human + AI messages) |
+| `messages` | `Annotated[List[BaseMessage], operator.add]` | Conversation history — uses `operator.add` so new messages are **appended** |
 | `user_query` | `str` | The user's original natural language query |
 | `search_results` | `List[Dict[str, Any]]` | Listings found by the search agent |
 | `filters` | `Dict[str, Any]` | Extracted filter criteria (price, property_type, bedrooms, etc.) |
@@ -179,20 +190,19 @@ Define these fields on `AgentState`:
 | `next_agent` | `str` | Which agent should run next (routing decision) |
 | `final_response` | `str` | The final response text to send to the user |
 
-### 💡 Why a TypedDict?
+### Why `Annotated` with `operator.add`?
 
-LangGraph uses `TypedDict` to define the schema of the shared state. This gives you:
-- Type checking in your IDE
-- Clear documentation of what data flows between agents
-- Validation that all required fields are present
+LangGraph uses `TypedDict` to define the schema of the shared state. When a node returns `{'messages': [new_msg]}`, the `operator.add` annotation tells LangGraph to **append** the new message to the existing list, rather than replacing it. All other fields use **replace** semantics (last write wins).
+
+This means nodes only need to return the fields they changed — not the entire state.
 
 <details>
-<summary>🔑 Solution</summary>
+<summary>Solution</summary>
 
 ```python
 class AgentState(TypedDict):
     """Shared state passed between agents in the graph."""
-    messages: List[BaseMessage]
+    messages: Annotated[List[BaseMessage], operator.add]
     user_query: str
     search_results: List[Dict[str, Any]]
     filters: Dict[str, Any]
@@ -205,47 +215,13 @@ class AgentState(TypedDict):
 
 ---
 
-## 🛠️ Step 3: Implement the Agent Tools
+## Step 3: Implement the Agent Tools
 
-📂 **Edit:** [`src/api/agents.py`](../src/api/agents.py) — find the Step 3 section
+**Edit:** [`src/api/agents.py`](../src/api/agents.py) — find the Step 3 section
 
-Tools are decorated functions that agents can invoke to perform data operations. You'll implement three tools.
+Tools are decorated functions that agents can invoke to perform data operations. You'll implement two tools.
 
-### 3a. `create_search_tool(search_fn)`
-
-A factory function that returns a `@tool`-decorated search function.
-
-**Requirements:**
-- The inner function accepts `query: str` and `limit: int = 10`
-- Import `search_listings` from `.search`
-- Call `search_listings(query, limit=limit)`
-- Return results as a list of dicts (use `r.model_dump()` on each result)
-- Wrap in try/except — return `[]` on error
-
-<details>
-<summary>🔑 Solution</summary>
-
-```python
-def create_search_tool(search_fn):
-    """Create a search tool that uses the provided search function."""
-    
-    @tool
-    def search_listings(query: str, limit: int = 10) -> List[Dict[str, Any]]:
-        """Search for listings matching the query."""
-        try:
-            from .search import search_listings as do_search
-            results = do_search(query, limit=limit)
-            return [r.model_dump() for r in results]
-        except Exception as e:
-            logger.error(f"Search tool error: {e}")
-            return []
-    
-    return search_listings
-```
-
-</details>
-
-### 3b. `apply_filters`
+### 3a. `apply_filters`
 
 A `@tool`-decorated function that filters a list of listings.
 
@@ -264,7 +240,7 @@ A `@tool`-decorated function that filters a list of listings.
 - Return the filtered list
 
 <details>
-<summary>🔑 Solution</summary>
+<summary>Solution</summary>
 
 ```python
 @tool
@@ -277,28 +253,28 @@ def apply_filters(
 ) -> List[Dict[str, Any]]:
     """Apply filters to a list of listings."""
     filtered = listings.copy()
-    
+
     if max_price is not None:
         filtered = [l for l in filtered if l.get('price', float('inf')) <= max_price]
-    
+
     if property_type:
         filtered = [l for l in filtered if property_type.lower() in l.get('property_type', '').lower()]
-    
+
     if min_bedrooms is not None:
         filtered = [l for l in filtered if (l.get('bedrooms') or 0) >= min_bedrooms]
-    
+
     if amenities:
         def has_amenities(listing):
             listing_amenities = [a.lower() for a in listing.get('amenities', [])]
             return all(a.lower() in listing_amenities for a in amenities)
         filtered = [l for l in filtered if has_amenities(l)]
-    
+
     return filtered
 ```
 
 </details>
 
-### 3c. `get_recommendations`
+### 3b. `get_recommendations`
 
 A `@tool`-decorated function that ranks listings by user preference.
 
@@ -314,7 +290,7 @@ A `@tool`-decorated function that ranks listings by user preference.
 - `"balanced"` — Rank each listing as `score - (price / 500.0)`, sort descending, return top 5
 
 <details>
-<summary>🔑 Solution</summary>
+<summary>Solution</summary>
 
 ```python
 @tool
@@ -325,7 +301,7 @@ def get_recommendations(
     """Get personalized recommendations from listings."""
     if not listings:
         return []
-    
+
     if preference == "budget":
         return sorted(listings, key=lambda x: x.get('price', float('inf')))[:5]
     elif preference == "quality":
@@ -342,89 +318,63 @@ def get_recommendations(
 
 ---
 
-## 🛠️ Step 4: Implement the Agent Nodes
+## Step 4: Implement the Agent Nodes
 
-📂 **Edit:** [`src/api/agents.py`](../src/api/agents.py) — find the Step 4 section
+**Edit:** [`src/api/agents.py`](../src/api/agents.py) — find the Step 4 section
 
-Each agent node is a function with the signature `(state: AgentState) -> AgentState`. Nodes read from the shared state, perform their specialized task, update the state, and return it.
+Each agent node is an async function with the signature `async (state: AgentState) -> dict`. Nodes read from the shared state, perform their specialized task, and **return a dict containing only the fields they changed**. LangGraph merges these changes into the shared state automatically.
 
 ### 4a. `supervisor_node`
 
-The supervisor is the "brain" of the system — it decides which specialist should handle the query.
+The supervisor is the "brain" of the system — it decides whether to run the full search pipeline or respond directly.
 
 **Requirements:**
 1. Call `create_llm()` to get an LLM instance
-2. Build a system prompt describing the four routing options:
-   - `"search"` — user wants to find listings (e.g., "find apartments near downtown Denver")
-   - `"filter"` — user wants to apply constraints (e.g., "under $150 with 2 bedrooms")
-   - `"recommend"` — user wants recommendations (e.g., "what's the best value?")
-   - `"respond"` — ready to give a final answer
-3. Include the current state summary (number of results, filters, recommendations)
-4. Ask the LLM to respond with ONLY one word
-5. Validate the LLM's response — if not one of the four valid options, use fallback logic:
-   - No search results yet → `"search"`
-   - No recommendations yet → `"recommend"`
-   - Otherwise → `"respond"`
-6. Set `state['next_agent']` to the chosen agent
-7. Append a routing message (`AIMessage`) to `state['messages']`
+2. Build a system prompt describing the two routing options:
+   - `"search"` — user wants to find, filter, or get recommendations for listings
+   - `"respond"` — user is making small talk or asking a non-search question
+3. Ask the LLM to respond with ONLY one word
+4. Validate the LLM's response — if not `"search"` or `"respond"`, default to `"search"`
+5. Return a dict with `'next_agent'` and `'messages'` (an `AIMessage` with routing info)
 
-### 💡 Why validation?
+### Why only two routes?
 
-LLMs sometimes return extra text or unexpected answers. The validation step ensures the system always routes to a valid agent, even if the LLM misbehaves.
+The search pipeline (search -> filter -> recommend -> respond) runs as a linear sequence after the supervisor routes to "search". This ensures compound queries like "2-bedroom apartment under $200" always go through both search AND filter, rather than skipping filter as a separate routing option.
 
 <details>
-<summary>🔑 Solution</summary>
+<summary>Solution</summary>
 
 ```python
-def supervisor_node(state: AgentState) -> AgentState:
-    """Supervisor agent that routes queries to appropriate specialists."""
+async def supervisor_node(state: AgentState) -> dict:
+    """Supervisor agent that routes queries to search pipeline or direct response."""
     llm = create_llm()
-    
+
     system_prompt = """You are a supervisor agent for a booking search system.
-    
-Analyze the user's query and decide which specialist agent should handle it:
 
-- "search": The user wants to find listings (e.g., "find apartments near downtown Denver")
-- "filter": The user wants to filter results (e.g., "only show places under $150 with 2 bedrooms")
-- "recommend": The user wants recommendations (e.g., "what's the best option?")
-- "respond": Ready to give final response to user
+Analyze the user's query and decide the next step:
 
-Current state:
-- Search results: {num_results} listings found
-- Filters applied: {filters}
-- Recommendations: {num_recs} items
+- "search": The user wants to find, filter, or get recommendations for listings
+  (e.g., "find apartments", "2-bedroom under $200", "best places near downtown")
+- "respond": The user is making small talk, saying thanks, or asking a non-search question
+  (e.g., "hello", "thanks", "what can you do?")
 
-Respond with ONLY one word: search, filter, recommend, or respond"""
+Respond with ONLY one word: search or respond"""
 
-    num_results = len(state.get('search_results', []))
-    filters = state.get('filters', {})
-    num_recs = len(state.get('recommendations', []))
-    
     messages = [
-        SystemMessage(content=system_prompt.format(
-            num_results=num_results,
-            filters=filters,
-            num_recs=num_recs
-        )),
+        SystemMessage(content=system_prompt),
         HumanMessage(content=state['user_query'])
     ]
-    
-    response = llm.invoke(messages)
+
+    response = await llm.ainvoke(messages)
     next_agent = response.content.strip().lower()
-    
-    valid_agents = ['search', 'filter', 'recommend', 'respond']
-    if next_agent not in valid_agents:
-        if num_results == 0:
-            next_agent = 'search'
-        elif num_recs == 0:
-            next_agent = 'recommend'
-        else:
-            next_agent = 'respond'
-    
-    state['next_agent'] = next_agent
-    state['messages'].append(AIMessage(content=f"Routing to: {next_agent}"))
-    
-    return state
+
+    if next_agent not in ('search', 'respond'):
+        next_agent = 'search'
+
+    return {
+        'next_agent': next_agent,
+        'messages': [AIMessage(content=f"Routing to: {next_agent}")]
+    }
 ```
 
 </details>
@@ -437,65 +387,63 @@ The search agent finds relevant listings using vector search.
 1. Import `search_listings` from `.search`
 2. Call `search_listings(state['user_query'], limit=20)`
 3. Convert each result to a dict: `{**r.listing.model_dump(), 'score': r.score}`
-4. Store the list in `state['search_results']`
-5. Append a status message to `state['messages']` (e.g., "Found N listings")
-6. Set `state['next_agent'] = 'recommend'`
-7. Wrap in try/except — on error, set empty results and log the error
+4. Return a dict with `'search_results'` and `'messages'`
+5. Wrap in try/except — on error, return empty results and log the error
 
 <details>
-<summary>🔑 Solution</summary>
+<summary>Solution</summary>
 
 ```python
-def search_node(state: AgentState) -> AgentState:
+async def search_node(state: AgentState) -> dict:
     """Search agent that finds relevant listings."""
     try:
         from .search import search_listings
-        
+
         results = search_listings(state['user_query'], limit=20)
-        state['search_results'] = [
+        search_results = [
             {**r.listing.model_dump(), 'score': r.score}
             for r in results
         ]
-        state['messages'].append(AIMessage(content=f"Found {len(results)} listings"))
-        
+        return {
+            'search_results': search_results,
+            'messages': [AIMessage(content=f"Found {len(results)} listings")]
+        }
+
     except Exception as e:
         logger.error(f"Search agent error: {e}")
-        state['search_results'] = []
-        state['messages'].append(AIMessage(content=f"Search error: {str(e)}"))
-    
-    state['next_agent'] = 'recommend'
-    return state
+        return {
+            'search_results': [],
+            'messages': [AIMessage(content=f"Search error: {str(e)}")]
+        }
 ```
 
 </details>
 
 ### 4c. `filter_node`
 
-The filter agent extracts constraints from the user's query and applies them to search results.
+The filter agent extracts constraints from the user's query and applies them. It acts as a **no-op** when no filter constraints are detected — the LLM returns `{}` and results pass through unchanged.
 
 **Requirements:**
 1. Call `create_llm()` to get an LLM instance
 2. Send a system prompt asking the LLM to extract filter criteria as JSON:
    - Fields: `max_price` (number), `property_type` (string), `min_bedrooms` (integer), `amenities` (array of strings)
    - Example: `{"max_price": 200, "property_type": "Apartment", "min_bedrooms": 2}`
-3. Parse the JSON response with `json.loads()` (remember to `import json`)
-4. Store the parsed filters in `state['filters']`
-5. Call `apply_filters.invoke()` with the search results and parsed filters
-6. Update `state['search_results']` with the filtered results
-7. Append a status message to `state['messages']`
-8. Set `state['next_agent'] = 'recommend'`
-9. Handle JSON parse errors and other exceptions gracefully
+3. Parse the JSON response with `json.loads()`
+4. If filters were extracted, call `apply_filters.invoke()` with the search results and parsed filters
+5. If no filters (empty `{}`), pass results through unchanged
+6. Return a dict with `'filters'`, `'search_results'`, and `'messages'`
+7. Handle JSON parse errors and other exceptions gracefully
 
 <details>
-<summary>🔑 Solution</summary>
+<summary>Solution</summary>
 
 ```python
-def filter_node(state: AgentState) -> AgentState:
+async def filter_node(state: AgentState) -> dict:
     """Filter agent that applies constraints to results."""
     llm = create_llm()
-    
+
     system_prompt = """Extract filter criteria from the user query.
-    
+
 Respond in JSON format with these optional fields:
 - max_price: number (maximum price per night)
 - property_type: string (e.g. "Apartment", "House", "Condo", "Guesthouse")
@@ -510,26 +458,32 @@ If no clear filters, respond with: {}"""
         SystemMessage(content=system_prompt),
         HumanMessage(content=state['user_query'])
     ]
-    
+
     try:
-        response = llm.invoke(messages)
-        import json
+        response = await llm.ainvoke(messages)
         filters = json.loads(response.content)
-        state['filters'] = filters
-        
-        filtered = apply_filters.invoke({
-            'listings': state['search_results'],
-            **filters
-        })
-        state['search_results'] = filtered
-        state['messages'].append(AIMessage(content=f"Applied filters, {len(filtered)} results remain"))
-        
+
+        if filters:
+            filtered = apply_filters.invoke({
+                'listings': state['search_results'],
+                **filters
+            })
+            return {
+                'filters': filters,
+                'search_results': filtered,
+                'messages': [AIMessage(content=f"Applied filters, {len(filtered)} results remain")]
+            }
+        else:
+            return {
+                'filters': {},
+                'messages': [AIMessage(content="No filters to apply")]
+            }
+
     except Exception as e:
         logger.error(f"Filter agent error: {e}")
-        state['messages'].append(AIMessage(content=f"Filter error: {str(e)}"))
-    
-    state['next_agent'] = 'recommend'
-    return state
+        return {
+            'messages': [AIMessage(content=f"Filter error: {str(e)}")]
+        }
 ```
 
 </details>
@@ -543,21 +497,19 @@ The recommendation agent ranks listings based on user preferences.
 2. Use a system prompt to determine the user's preference from their query — the LLM should respond with ONLY one word: `"budget"`, `"quality"`, or `"balanced"`
 3. Validate the response — default to `"balanced"` if invalid
 4. Call `get_recommendations.invoke()` with the search results and detected preference
-5. Store the recommendations in `state['recommendations']`
-6. Append a status message to `state['messages']`
-7. Set `state['next_agent'] = 'respond'`
-8. On error, fall back to `state['search_results'][:5]`
+5. Return a dict with `'recommendations'` and `'messages'`
+6. On error, fall back to `state['search_results'][:5]`
 
 <details>
-<summary>🔑 Solution</summary>
+<summary>Solution</summary>
 
 ```python
-def recommend_node(state: AgentState) -> AgentState:
+async def recommend_node(state: AgentState) -> dict:
     """Recommendation agent that ranks and suggests listings."""
     llm = create_llm()
-    
+
     system_prompt = """Analyze the user query and determine their preference.
-    
+
 Respond with ONLY one word:
 - "budget": User prioritizes low prices
 - "quality": User prioritizes high ratings/quality
@@ -568,27 +520,28 @@ Query: {query}"""
     messages = [
         SystemMessage(content=system_prompt.format(query=state['user_query'])),
     ]
-    
+
     try:
-        response = llm.invoke(messages)
+        response = await llm.ainvoke(messages)
         preference = response.content.strip().lower()
         if preference not in ['budget', 'quality', 'balanced']:
             preference = 'balanced'
-        
+
         recs = get_recommendations.invoke({
             'listings': state['search_results'],
             'preference': preference
         })
-        state['recommendations'] = recs
-        state['messages'].append(AIMessage(content=f"Generated {len(recs)} recommendations ({preference})"))
-        
+        return {
+            'recommendations': recs,
+            'messages': [AIMessage(content=f"Generated {len(recs)} recommendations ({preference})")]
+        }
+
     except Exception as e:
         logger.error(f"Recommendation agent error: {e}")
-        state['recommendations'] = state['search_results'][:5]
-        state['messages'].append(AIMessage(content=f"Fallback recommendations"))
-    
-    state['next_agent'] = 'respond'
-    return state
+        return {
+            'recommendations': state['search_results'][:5],
+            'messages': [AIMessage(content="Fallback recommendations")]
+        }
 ```
 
 </details>
@@ -600,33 +553,34 @@ The response agent generates the final user-facing message.
 **Requirements:**
 1. Call `create_llm()` to get an LLM instance
 2. Get recommendations from state (fall back to `search_results[:5]` if empty)
-3. If there are no results at all, set a "no results found" message and return early
+3. If there are no results at all, return a "no results found" message
 4. Format the top 5 listings into a context string with name, description snippet, property type, bedrooms, and price
 5. Build a system prompt asking the LLM to be a friendly booking assistant and keep the response under 200 words
-6. Invoke the LLM and store the response in `state['final_response']`
+6. Invoke the LLM and return a dict with `'final_response'`
 7. On error, fall back to the raw listings context string
 
 <details>
-<summary>🔑 Solution</summary>
+<summary>Solution</summary>
 
 ```python
-def respond_node(state: AgentState) -> AgentState:
+async def respond_node(state: AgentState) -> dict:
     """Response agent that generates the final user-facing response."""
     llm = create_llm()
-    
+
     recs = state.get('recommendations', []) or state.get('search_results', [])[:5]
-    
+
     if not recs:
-        state['final_response'] = "I couldn't find any listings matching your criteria. Try broadening your search!"
-        return state
-    
+        return {
+            'final_response': "I couldn't find any listings matching your criteria. Try broadening your search!"
+        }
+
     listings_context = "\n".join([
         f"- {r.get('name', 'Unknown')}: {r.get('description', '')[:100]}... "
         f"(Type: {r.get('property_type', 'N/A')}, Bedrooms: {r.get('bedrooms', 'N/A')}, "
         f"Price: ${r.get('price', 'N/A')}/night)"
         for r in recs[:5]
     ])
-    
+
     system_prompt = """You are a helpful booking assistant. Based on the search results below,
 provide a friendly, concise response to the user's query. Mention 2-3 top options with brief highlights.
 
@@ -639,24 +593,22 @@ Keep your response conversational and under 200 words."""
         SystemMessage(content=system_prompt.format(listings=listings_context)),
         HumanMessage(content=state['user_query'])
     ]
-    
+
     try:
-        response = llm.invoke(messages)
-        state['final_response'] = response.content
+        response = await llm.ainvoke(messages)
+        return {'final_response': response.content}
     except Exception as e:
         logger.error(f"Response agent error: {e}")
-        state['final_response'] = f"Here are some options I found:\n{listings_context}"
-    
-    return state
+        return {'final_response': f"Here are some options I found:\n{listings_context}"}
 ```
 
 </details>
 
 ---
 
-## 🛠️ Step 5: Build the LangGraph Workflow
+## Step 5: Build the LangGraph Workflow
 
-📂 **Edit:** [`src/api/agents.py`](../src/api/agents.py) — find `build_agent_graph()`
+**Edit:** [`src/api/agents.py`](../src/api/agents.py) — find `build_agent_graph()`
 
 This function wires all agent nodes into a LangGraph `StateGraph`. The graph defines how agents connect and in what order they execute.
 
@@ -664,22 +616,20 @@ This function wires all agent nodes into a LangGraph `StateGraph`. The graph def
 
 ```
     [START]
-       ↓
-  [Supervisor] ←────────────────┐
-       ↓                        │
-  (conditional routing)         │
-       ↓                        │
-  ┌────┴────┬───────┬──────┐    │
-  ↓         ↓       ↓      ↓   │
-[Search] [Filter] [Recommend] [Respond]
-  │         │       │           │
-  └────┬────┘       │           │
-       ↓            │           │
-  [Recommend] ◄─────┘           │
-       ↓                        │
-  [Respond]                     │
-       ↓                        │
-     [END]                      │
+       |
+  [Supervisor]
+       |
+  (conditional routing)
+       |
+  ┌────┴──────────────┐
+  v                   v
+[Search]          [Respond] ──> [END]
+  |
+[Filter]
+  |
+[Recommend]
+  |
+[Respond] ──> [END]
 ```
 
 ### Requirements
@@ -688,64 +638,61 @@ This function wires all agent nodes into a LangGraph `StateGraph`. The graph def
 2. Create a `StateGraph(AgentState)`
 3. Add all 5 nodes: `"supervisor"`, `"search"`, `"filter"`, `"recommend"`, `"respond"`
 4. Set `"supervisor"` as the entry point
-5. Add **conditional edges** from `"supervisor"` — define a routing function that reads `state['next_agent']` and maps to node names:
+5. Add **conditional edges** from `"supervisor"` — define a routing function that reads `state['next_agent']` and maps to:
    ```python
-   {"search": "search", "filter": "filter", "recommend": "recommend", "respond": "respond"}
+   {"search": "search", "respond": "respond"}
    ```
-6. Add **direct edges** for the linear flow after routing:
-   - `"search"` → `"recommend"`
-   - `"filter"` → `"recommend"`
-   - `"recommend"` → `"respond"`
-   - `"respond"` → `END`
+6. Add **direct edges** for the linear pipeline:
+   - `"search"` -> `"filter"`
+   - `"filter"` -> `"recommend"`
+   - `"recommend"` -> `"respond"`
+   - `"respond"` -> `END`
 7. Compile the graph and return it
 
-### 💡 Conditional vs Direct Edges
+### Why a Linear Pipeline?
 
-- **Conditional edges** let the supervisor dynamically choose the next agent based on state
-- **Direct edges** create a fixed flow after the initial routing — this prevents loops and ensures the pipeline always progresses forward
+The supervisor routes to either `"search"` (full pipeline) or `"respond"` (direct answer). After search, the pipeline always runs filter -> recommend -> respond in sequence. This guarantees that compound queries like "2-bedroom apartment under $200 with parking" go through both search AND filter — the filter agent is a no-op when no constraints are detected, so simple queries still work correctly.
 
 <details>
-<summary>🔑 Solution</summary>
+<summary>Solution</summary>
 
 ```python
 def build_agent_graph():
     """Build the LangGraph agent workflow."""
     if not LANGGRAPH_AVAILABLE:
         return None
-    
+
     workflow = StateGraph(AgentState)
-    
+
     # Add nodes
     workflow.add_node("supervisor", supervisor_node)
     workflow.add_node("search", search_node)
     workflow.add_node("filter", filter_node)
     workflow.add_node("recommend", recommend_node)
     workflow.add_node("respond", respond_node)
-    
+
     # Define routing logic
     def route_from_supervisor(state: AgentState) -> str:
-        next_agent = state.get('next_agent', 'search')
-        return next_agent
-    
-    # Add edges
+        return state.get('next_agent', 'search')
+
+    # Set entry point and conditional routing
     workflow.set_entry_point("supervisor")
-    
+
     workflow.add_conditional_edges(
         "supervisor",
         route_from_supervisor,
         {
             "search": "search",
-            "filter": "filter",
-            "recommend": "recommend",
             "respond": "respond",
         }
     )
-    
-    workflow.add_edge("search", "recommend")
+
+    # Linear pipeline: search -> filter -> recommend -> respond -> END
+    workflow.add_edge("search", "filter")
     workflow.add_edge("filter", "recommend")
     workflow.add_edge("recommend", "respond")
     workflow.add_edge("respond", END)
-    
+
     return workflow.compile()
 ```
 
@@ -753,9 +700,9 @@ def build_agent_graph():
 
 ---
 
-## 🛠️ Step 6: Implement the Public Interface
+## Step 6: Implement the Public Interface
 
-📂 **Edit:** [`src/api/agents.py`](../src/api/agents.py) — find `run_agent_query()` and `is_multi_agent_available()`
+**Edit:** [`src/api/agents.py`](../src/api/agents.py) — find `run_agent_query()` and `is_multi_agent_available()`
 
 These are the functions that `main.py` imports. They expose the multi-agent system to the rest of the application.
 
@@ -771,25 +718,26 @@ This async function is the main entry point for the multi-agent system.
 3. Initialize the `AgentState` with the query, empty lists/dicts for all fields
 4. Run the graph: `final_state = await graph.ainvoke(initial_state)`
 5. Extract the agent path by finding routing messages in `final_state['messages']`
-6. Return a dict with:
+6. Format results: separate `score` from listing data into `{"listing": {...}, "score": N}` structure
+7. Return a dict with:
    - `"response"` — `final_state['final_response']`
    - `"agent_path"` — list of agent names from routing messages
-   - `"search_results"` — `final_state['recommendations'][:10]`
+   - `"search_results"` — formatted results list
    - `"multi_agent"` — `True`
-7. On any exception, fall back to simple RAG (same as step 2)
+8. On any exception, fall back to simple RAG (same as step 2)
 
 ### 6b. `is_multi_agent_available()`
 
 Returns `True` if LangGraph is installed AND the agent graph compiled successfully.
 
 <details>
-<summary>🔑 Solution</summary>
+<summary>Solution</summary>
 
 ```python
 async def run_agent_query(query: str, session_id: str = "default") -> Dict[str, Any]:
     """Run a query through the multi-agent system."""
     graph = get_agent_graph()
-    
+
     if graph is None:
         from .chat import generate_chat_response
         response = await generate_chat_response(query, session_id)
@@ -799,7 +747,7 @@ async def run_agent_query(query: str, session_id: str = "default") -> Dict[str, 
             "search_results": [],
             "multi_agent": False
         }
-    
+
     try:
         initial_state: AgentState = {
             "messages": [HumanMessage(content=query)],
@@ -810,22 +758,33 @@ async def run_agent_query(query: str, session_id: str = "default") -> Dict[str, 
             "next_agent": "",
             "final_response": ""
         }
-        
+
         final_state = await graph.ainvoke(initial_state)
-        
+
         agent_path = [
             msg.content.replace("Routing to: ", "")
             for msg in final_state['messages']
             if isinstance(msg, AIMessage) and msg.content.startswith("Routing to:")
         ]
-        
+
+        # Format results with score separated from listing data
+        results = final_state.get('recommendations', [])[:10]
+        search_results = []
+        for r in results:
+            result_copy = r.copy()
+            score = result_copy.pop('score', 1.0)
+            search_results.append({
+                'listing': result_copy,
+                'score': score
+            })
+
         return {
             "response": final_state['final_response'],
             "agent_path": agent_path,
-            "search_results": final_state.get('recommendations', [])[:10],
+            "search_results": search_results,
             "multi_agent": True
         }
-        
+
     except Exception as e:
         logger.error(f"Agent graph error: {e}")
         from .chat import generate_chat_response
@@ -848,7 +807,7 @@ def is_multi_agent_available() -> bool:
 
 ---
 
-## 🧪 Step 7: Test Your Implementation
+## Step 7: Test Your Implementation
 
 Now let's verify everything works end-to-end.
 
@@ -873,7 +832,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 curl http://localhost:8000/health
 ```
 
-Look for `"multi_agent_available": true` in the response. If it's `false`, make sure LangGraph is installed:
+Look for `"multi_agent": true` in the response. If it's `false`, make sure LangGraph is installed:
 
 ```bash
 pip install langgraph langchain langchain-openai
@@ -888,7 +847,7 @@ curl -X POST http://localhost:8000/query_message \
   -d '{"message": "Find me a cozy place near downtown Denver", "session_id": "test1"}'
 ```
 
-**Complex multi-criteria query:**
+**Complex multi-criteria query (tests the filter agent):**
 ```bash
 curl -X POST http://localhost:8000/query_message \
   -H "Content-Type: application/json" \
@@ -904,37 +863,39 @@ curl -X POST http://localhost:8000/query_message \
 
 ### 7d. Test in the frontend
 
-Open http://localhost:3000 and use the chat panel. Try queries that exercise different agents:
+Open http://localhost:3000 and use the chat panel. Try queries that exercise different parts of the pipeline:
 
-1. **Search Agent**: "Show me apartments in Denver"
-2. **Filter Agent**: "Only show places with at least 2 bedrooms under $150"
-3. **Recommend Agent**: "What's the best value option?"
-4. **Multi-agent pipeline**: "2-bedroom apartment with kitchen and parking, under $200"
+1. **Full pipeline**: "2-bedroom apartment with kitchen and parking, under $200"
+2. **Search + no filters**: "Show me apartments in Denver"
+3. **Budget preference**: "What's the cheapest place available?"
+4. **Direct response**: "Hello, what can you help me with?"
 
 ### 7e. What to check for
 
-| ✅ Working | ❌ Possible Issue |
-|-----------|-----------------|
+| Working | Possible Issue |
+|---------|---------------|
 | Response mentions specific listings | Check `respond_node()` — is the context being formatted? |
-| Multi-agent path shown in response | Check `supervisor_node()` — is it appending routing messages? |
+| Filter constraints applied (fewer results) | Check `filter_node()` — is JSON parsing working? |
 | Budget queries return cheapest first | Check `recommend_node()` — is preference detection working? |
 | Graceful fallback without LangGraph | Check `run_agent_query()` — is it falling back to RAG? |
+| "Hello" gets a direct response without search | Check `supervisor_node()` — is it routing to "respond"? |
 
 ---
 
-## 🎓 What You've Learned
+## What You've Learned
 
-✅ **Multi-Agent Architecture**: Designing systems with specialized agents
-✅ **LangGraph**: Building stateful workflows with `StateGraph`
-✅ **Agent Orchestration**: Routing tasks intelligently with a supervisor
-✅ **Shared State**: Coordinating data across multiple agents via `TypedDict`
-✅ **Tool Design**: Creating `@tool`-decorated functions for data operations
-✅ **Graceful Degradation**: Falling back to simpler systems when dependencies are unavailable
-✅ **End-to-End Integration**: Wiring your agents into a running web application
+- **Multi-Agent Architecture**: Designing systems with specialized agents
+- **LangGraph**: Building stateful workflows with `StateGraph`
+- **Agent Orchestration**: Routing tasks intelligently with a supervisor
+- **Linear Pipelines**: Ensuring all processing steps run for compound queries
+- **Shared State**: Coordinating data across multiple agents via `TypedDict`
+- **Tool Design**: Creating `@tool`-decorated functions for data operations
+- **Graceful Degradation**: Falling back to simpler systems when dependencies are unavailable
+- **End-to-End Integration**: Wiring your agents into a running web application
 
 ---
 
-## 🚀 Challenges
+## Challenges
 
 ### Challenge 1: Add a Clarification Agent (Medium)
 
@@ -942,10 +903,10 @@ Create an agent that detects vague queries and asks clarifying questions before 
 
 **Requirements:**
 - Use the LLM to determine if a query is too vague (missing location, budget, size)
-- If vague, generate 2–3 clarifying questions and set as `final_response`
-- If detailed enough, route to the filter agent
+- If vague, generate 2-3 clarifying questions and set as `final_response`
+- If detailed enough, route to the search pipeline
 
-Add a new `clarification_node` and wire it into `build_agent_graph()` as the entry point (before supervisor).
+Add a new `clarification_node` and wire it into `build_agent_graph()` between supervisor and search.
 
 ### Challenge 2: Add Error Handling Agent (Medium)
 
@@ -971,42 +932,43 @@ Add it as a new routing option in the supervisor.
 
 The current system treats each query independently. Add conversation memory so follow-up questions work:
 
-- "Find me places in Denver" → searches normally
-- "Do any of those have parking?" → references previous results
+- "Find me places in Denver" -> searches normally
+- "Do any of those have parking?" -> references previous results
 
 **Hint:** Use `MemorySaver` from LangGraph and pass a `thread_id` config when invoking the graph.
 
 ---
 
-## ✅ Checkpoint
+## Checkpoint
 
 Before completing the workshop, ensure you have:
 
-- [ ] Defined the `AgentState` TypedDict with all 7 fields
-- [ ] Implemented `create_search_tool`, `apply_filters`, and `get_recommendations` tools
+- [ ] Defined the `AgentState` TypedDict with all 7 fields (including `Annotated` for messages)
+- [ ] Implemented `apply_filters` and `get_recommendations` tools
 - [ ] Implemented all 5 agent nodes (supervisor, search, filter, recommend, respond)
-- [ ] Built the LangGraph workflow in `build_agent_graph()`
+- [ ] Built the LangGraph workflow in `build_agent_graph()` with the linear pipeline
 - [ ] Implemented `run_agent_query()` with fallback to simple RAG
 - [ ] Implemented `is_multi_agent_available()`
 - [ ] Tested search queries via the API or frontend
-- [ ] Verified the supervisor routes correctly based on query intent
+- [ ] Verified the supervisor routes correctly (search vs respond)
+- [ ] Verified the filter agent applies constraints for compound queries
 - [ ] Completed at least one challenge exercise
 
-## 🎉 Workshop Complete!
+## Workshop Complete!
 
 Congratulations! You've built a sophisticated AI-powered application with:
 
-✅ **Vector Search** (Module 1) — Semantic search with DocumentDB cosmosSearch
-✅ **RAG Pattern** (Module 2) — Context-aware AI responses with LangChain
-✅ **Multi-Agent System** (Module 3) — Specialized agents orchestrated with LangGraph
+- **Vector Search** (Module 1) — Semantic search with DocumentDB cosmosSearch
+- **RAG Pattern** (Module 2) — Context-aware AI responses with LangChain
+- **Multi-Agent System** (Module 3) — Specialized agents orchestrated with LangGraph
 
 ### Key Takeaways:
 
-🎯 **Vector Search** enables semantic understanding beyond keywords
-🎯 **RAG Pattern** grounds AI responses in your real data
-🎯 **Multi-Agent Systems** make complex AI applications maintainable
-🎯 **LangGraph** provides powerful orchestration for stateful workflows
+- **Vector Search** enables semantic understanding beyond keywords
+- **RAG Pattern** grounds AI responses in your real data
+- **Multi-Agent Systems** make complex AI applications maintainable
+- **LangGraph** provides powerful orchestration for stateful workflows
 
 ---
 
-**💬 Stuck?** Compare your code with [`solutions/agents_solution.py`](../solutions/agents_solution.py) or ask your instructor for help!
+**Stuck?** Compare your code with [`solutions/agents_solution.py`](../solutions/agents_solution.py) or ask your instructor for help!

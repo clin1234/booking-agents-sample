@@ -777,9 +777,8 @@ results = search_listings("luxury penthouse with city views", limit=10)
 ## 📖 Additional Resources
 
 - [OpenAI Embeddings Guide](https://platform.openai.com/docs/guides/embeddings)
-- [DocumentDB Vector Search Documentation](https://learn.microsoft.com/azure/cosmos-db/mongodb/vcore/vector-search)
+- [DocumentDB Vector Search Documentation](https://documentdb.io/docs/latest/vector-search/)
 - [Understanding Cosine Similarity](https://en.wikipedia.org/wiki/Cosine_similarity)
-- [IVF vs HNSW Indexes](https://learn.microsoft.com/azure/cosmos-db/mongodb/vcore/vector-search#vector-index-types)
 
 ## ✅ Checkpoint
 

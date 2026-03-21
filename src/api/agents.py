@@ -6,7 +6,7 @@ Module 3 Exercise: Build a LangGraph-based multi-agent system.
 
 You'll implement:
 - Shared agent state definition (Step 2)
-- Agent tools for search, filtering, and recommendations (Step 3)
+- Agent tools for filtering and recommendations (Step 3)
 - Specialized agent nodes: supervisor, search, filter, recommend, respond (Step 4)
 - LangGraph workflow connecting agents (Step 5)
 - The public run_agent_query function (Step 6)
@@ -15,7 +15,9 @@ Follow the exercises in exercises/Module-03.md to fill in each TODO.
 If you get stuck, check solutions/agents_solution.py for the complete code.
 """
 
+import json
 import logging
+import operator
 from typing import TypedDict, Annotated, Literal, Optional, List, Dict, Any
 from dataclasses import dataclass
 
@@ -27,10 +29,9 @@ logger = logging.getLogger(__name__)
 # Check if LangGraph is available
 try:
     from langgraph.graph import StateGraph, END
-    from langgraph.prebuilt import ToolNode
     from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
     from langchain_core.tools import tool
-    from langchain_openai import AzureChatOpenAI, ChatOpenAI
+    from langchain_openai import ChatOpenAI
     LANGGRAPH_AVAILABLE = True
 except ImportError:
     LANGGRAPH_AVAILABLE = False
@@ -46,7 +47,9 @@ except ImportError:
 # Each agent reads from and writes to this state.
 #
 # Required fields:
-#   - messages:        List[BaseMessage]        — conversation message history
+#   - messages:        Annotated[List[BaseMessage], operator.add]
+#                      — conversation message history (uses operator.add
+#                        so returning [new_msg] appends instead of replacing)
 #   - user_query:      str                      — the user's original query
 #   - search_results:  List[Dict[str, Any]]     — listings found by search
 #   - filters:         Dict[str, Any]           — extracted filter criteria
@@ -62,29 +65,12 @@ class AgentState(TypedDict):
 # ============================================================================
 # Step 3: Agent Tools
 # ============================================================================
-# TODO: Implement the three agent tools below.
+# TODO: Implement the two agent tools below.
 #
 # These are LangChain @tool-decorated functions that agents can invoke.
-# They perform the actual data operations (search, filter, rank).
+# They perform the actual data operations (filter, rank).
 
-# 3a. create_search_tool
-# -----------------------
-# TODO: Implement create_search_tool(search_fn).
-#
-# This is a factory function that returns a @tool-decorated function.
-# The inner function should:
-#   - Accept a query (str) and limit (int, default 10)
-#   - Import search_listings from .search
-#   - Call search_listings(query, limit=limit)
-#   - Return results as a list of dicts (use .model_dump())
-#   - Handle exceptions and return [] on error
-
-def create_search_tool(search_fn):
-    """Create a search tool that uses the provided search function."""
-    pass  # TODO: Replace with your implementation
-
-
-# 3b. apply_filters
+# 3a. apply_filters
 # -------------------
 # TODO: Implement apply_filters as a @tool.
 #
@@ -110,7 +96,7 @@ def create_search_tool(search_fn):
 #     pass
 
 
-# 3c. get_recommendations
+# 3b. get_recommendations
 # -------------------------
 # TODO: Implement get_recommendations as a @tool.
 #
@@ -137,21 +123,12 @@ def create_search_tool(search_fn):
 # ============================================================================
 
 def create_llm():
-    """Create the appropriate LLM based on configuration."""
-    if settings.AZURE_OPENAI_ENDPOINT:
-        return AzureChatOpenAI(
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_key=settings.AZURE_OPENAI_API_KEY,
-            api_version=settings.AZURE_OPENAI_API_VERSION,
-            deployment_name=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
-            temperature=0.7,
-        )
-    else:
-        return ChatOpenAI(
-            api_key=settings.OPENAI_API_KEY,
-            model=settings.OPENAI_CHAT_MODEL,
-            temperature=0.7,
-        )
+    """Create the LLM for agent use."""
+    return ChatOpenAI(
+        api_key=settings.OPENAI_API_KEY,
+        model=settings.OPENAI_CHAT_MODEL,
+        temperature=0.7,
+    )
 
 
 # ============================================================================
@@ -159,33 +136,31 @@ def create_llm():
 # ============================================================================
 # TODO: Implement the five agent node functions below.
 #
-# Each node is a function that takes an AgentState and returns an updated
-# AgentState. Nodes are the "workers" in the LangGraph workflow.
+# Each node is an async function that takes an AgentState and returns a dict
+# containing only the state fields that changed. For the messages field,
+# return a list of new messages — they will be appended automatically
+# (thanks to the operator.add annotation on AgentState.messages).
 
 # 4a. supervisor_node
 # ---------------------
 # TODO: Implement supervisor_node(state).
 #
-# The supervisor analyzes the user query and the current state,
-# then decides which specialist agent should handle the request.
+# The supervisor analyzes the user query and decides whether to run
+# the full search pipeline or respond directly.
 #
 # It should:
 #   1. Call create_llm() to get an LLM instance
-#   2. Build a system prompt that describes the routing options:
-#      - "search":    user wants to find listings (e.g., "find apartments near downtown Denver")
-#      - "filter":    user wants to filter/constrain results (e.g., "under $150 with 2 bedrooms")
-#      - "recommend": user wants recommendations (e.g., "what's the best option?")
-#      - "respond":   ready to give a final response
-#   3. Include current state info (num results, filters, num recommendations)
-#   4. Ask the LLM to respond with ONLY one word
-#   5. Validate the response — if invalid, default based on state:
-#      - No search results → "search"
-#      - No recommendations → "recommend"
-#      - Otherwise → "respond"
-#   6. Set state['next_agent'] and append a routing message to state['messages']
+#   2. Build a system prompt that describes the two routing options:
+#      - "search":  user wants to find, filter, or get recommendations for listings
+#      - "respond": user is making small talk or asking a non-search question
+#   3. Ask the LLM to respond with ONLY one word
+#   4. Validate the response — if not "search" or "respond", default to "search"
+#   5. Return a dict with:
+#      - 'next_agent': the chosen route
+#      - 'messages': [AIMessage with routing info]
 
-def supervisor_node(state: AgentState) -> AgentState:
-    """Supervisor agent that routes queries to appropriate specialists."""
+async def supervisor_node(state: AgentState) -> dict:
+    """Supervisor agent that routes queries to search pipeline or direct response."""
     pass  # TODO: Replace with your implementation
 
 
@@ -199,12 +174,12 @@ def supervisor_node(state: AgentState) -> AgentState:
 #   1. Import search_listings from .search
 #   2. Call search_listings(state['user_query'], limit=20)
 #   3. Convert results to dicts: {**r.listing.model_dump(), 'score': r.score}
-#   4. Store in state['search_results']
-#   5. Append a status message to state['messages']
-#   6. Set state['next_agent'] = 'recommend'
-#   7. Handle exceptions gracefully (empty results + error message)
+#   4. Return a dict with:
+#      - 'search_results': the list of result dicts
+#      - 'messages': [AIMessage with status]
+#   5. Handle exceptions gracefully (empty results + error message)
 
-def search_node(state: AgentState) -> AgentState:
+async def search_node(state: AgentState) -> dict:
     """Search agent that finds relevant listings."""
     pass  # TODO: Replace with your implementation
 
@@ -214,19 +189,22 @@ def search_node(state: AgentState) -> AgentState:
 # TODO: Implement filter_node(state).
 #
 # The filter agent extracts constraints from the query and applies them.
+# Acts as a no-op when no filter constraints are detected.
 #
 # It should:
 #   1. Call create_llm() to get an LLM instance
 #   2. Use a system prompt to extract filter criteria as JSON from the user query
 #      (fields: max_price, property_type, min_bedrooms, amenities)
-#   3. Parse the JSON response (import json, then json.loads())
-#   4. Store filters in state['filters']
-#   5. Call apply_filters with the search_results and parsed filters
-#   6. Update state['search_results'] with the filtered results
-#   7. Set state['next_agent'] = 'recommend'
-#   8. Handle JSON parse errors and other exceptions
+#   3. Parse the JSON response (use json.loads())
+#   4. If filters were extracted, call apply_filters with the search_results
+#   5. If no filters (empty {}), pass results through unchanged
+#   6. Return a dict with:
+#      - 'filters': the parsed filter dict
+#      - 'search_results': filtered (or unchanged) results
+#      - 'messages': [AIMessage with status]
+#   7. Handle JSON parse errors and other exceptions
 
-def filter_node(state: AgentState) -> AgentState:
+async def filter_node(state: AgentState) -> dict:
     """Filter agent that applies constraints to results."""
     pass  # TODO: Replace with your implementation
 
@@ -242,11 +220,12 @@ def filter_node(state: AgentState) -> AgentState:
 #   2. Use a system prompt to determine the user's preference from the query
 #      (respond with "budget", "quality", or "balanced")
 #   3. Call get_recommendations with the search results and detected preference
-#   4. Store results in state['recommendations']
-#   5. Set state['next_agent'] = 'respond'
-#   6. On error, fall back to state['search_results'][:5]
+#   4. Return a dict with:
+#      - 'recommendations': the ranked list
+#      - 'messages': [AIMessage with status]
+#   5. On error, fall back to state['search_results'][:5]
 
-def recommend_node(state: AgentState) -> AgentState:
+async def recommend_node(state: AgentState) -> dict:
     """Recommendation agent that ranks and suggests listings."""
     pass  # TODO: Replace with your implementation
 
@@ -260,14 +239,15 @@ def recommend_node(state: AgentState) -> AgentState:
 # It should:
 #   1. Call create_llm() to get an LLM instance
 #   2. Get recommendations (or fall back to search_results[:5])
-#   3. If no results at all, set a "no results" message and return
+#   3. If no results at all, return a "no results" message
 #   4. Format the top 5 listings into a context string
 #   5. Use a system prompt asking the LLM to generate a friendly,
 #      concise booking assistant response (under 200 words)
-#   6. Store the response in state['final_response']
+#   6. Return a dict with:
+#      - 'final_response': the generated response text
 #   7. On error, fall back to the raw listings context
 
-def respond_node(state: AgentState) -> AgentState:
+async def respond_node(state: AgentState) -> dict:
     """Response agent that generates the final user-facing response."""
     pass  # TODO: Replace with your implementation
 
@@ -280,11 +260,8 @@ def respond_node(state: AgentState) -> AgentState:
 # This function assembles all agent nodes into a LangGraph StateGraph.
 #
 # Graph structure:
-#   [START] → [Supervisor] → (conditional routing) → [Search|Filter|Recommend|Respond]
-#   [Search]    → [Recommend]
-#   [Filter]    → [Recommend]
-#   [Recommend] → [Respond]
-#   [Respond]   → [END]
+#   [START] → [Supervisor] → "search"  → [Search] → [Filter] → [Recommend] → [Respond] → [END]
+#                           → "respond" → [Respond] → [END]
 #
 # Steps:
 #   1. Return None if LANGGRAPH_AVAILABLE is False
@@ -292,9 +269,10 @@ def respond_node(state: AgentState) -> AgentState:
 #   3. Add all 5 nodes: supervisor, search, filter, recommend, respond
 #   4. Set "supervisor" as the entry point
 #   5. Add conditional edges from supervisor using a routing function
-#      that reads state['next_agent'] and maps to node names
-#   6. Add direct edges: search→recommend, filter→recommend,
-#      recommend→respond, respond→END
+#      that reads state['next_agent'] and maps to:
+#      {"search": "search", "respond": "respond"}
+#   6. Add direct edges for the linear pipeline:
+#      search→filter, filter→recommend, recommend→respond, respond→END
 #   7. Compile and return the graph
 
 def build_agent_graph():
@@ -336,8 +314,10 @@ def get_agent_graph():
 #   3. Initialize the AgentState with the query and empty collections
 #   4. Run the graph with await graph.ainvoke(initial_state)
 #   5. Extract the agent path from routing messages in state['messages']
-#   6. Return a dict with: response, agent_path, search_results, multi_agent=True
-#   7. On error, fall back to simple RAG (same as step 2)
+#   6. Format results: separate 'score' from listing data into
+#      {"listing": {...}, "score": N} structure
+#   7. Return a dict with: response, agent_path, search_results, multi_agent=True
+#   8. On error, fall back to simple RAG (same as step 2)
 
 async def run_agent_query(query: str, session_id: str = "default") -> Dict[str, Any]:
     """

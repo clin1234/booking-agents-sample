@@ -229,12 +229,8 @@ async def query_message(request: ChatRequest):
             search_results = []
             for r in result.get('search_results', []):
                 if isinstance(r, dict):
-                    score = r.pop('score', 1.0) if 'score' in r else 1.0
-                    # Handle nested structure from model_dump() (legacy)
-                    if 'listing' in r:
-                        listing_data = r['listing']
-                    else:
-                        listing_data = r
+                    listing_data = r.get('listing', r)
+                    score = r.get('score', 1.0)
                     search_results.append(SearchResult(
                         listing=Listing(**listing_data),
                         score=score
@@ -384,7 +380,7 @@ if settings.DEBUG:
             "collection": settings.COLLECTION_NAME,
             "is_codespaces": settings.is_codespaces,
             "cors_origins": settings.cors_origins[:5],  # First 5 only
-            "openai_configured": bool(settings.OPENAI_API_KEY or settings.AZURE_OPENAI_ENDPOINT),
+            "openai_configured": bool(settings.OPENAI_API_KEY),
         }
     
     @app.get("/debug/static-data")
