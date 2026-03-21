@@ -77,6 +77,21 @@ Now that your environment is ready, let's deploy DocumentDB locally using Docker
    docker run -dt -p 10260:10260 --name documentdb-container documentdb --username admin --password password123
    ```
 
+### Change Port Visibilities
+
+The forwarded ports in Codespaces default to **Private**, which can block connections between services. You need to make them **Public** so the frontend, backend, and DocumentDB can communicate.
+
+1. **Open the Ports panel**:
+   - In the terminal area at the bottom of VS Code, click the **"Ports"** tab (next to Terminal, Output, etc.)
+
+2. **Update port visibility**:
+   - You should see port **10260** (DocumentDB) listed
+   - Right-click on the port row
+   - Select **"Port Visibility"** → **"Public"**
+   - Repeat for ports **3000** (frontend) and **8000** (backend) if they are listed
+
+> 💡 **Why Public?** In Codespaces, private ports require authentication tokens that automated service-to-service connections don't provide. Setting ports to Public allows the services to reach each other.
+
 4. **Verify the container is running**:
    ```bash
    docker ps
@@ -152,7 +167,7 @@ The workshop includes a JSON file with sample data that already contains vector 
 
 ---
 
-## 🔑 Step 3: Configure OpenAI API Key
+## 🔑 Step 3: Configure OpenAI API Key (oprional)
 
 You need an OpenAI API key to generate embeddings and use chat completions.
 

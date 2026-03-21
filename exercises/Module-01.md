@@ -80,6 +80,9 @@ You'll implement a semantic search system that allows users to search for Airbnb
 
 ---
 
+> **📍 Note:** Steps 1-5 are **optional** and require an OpenAI API key to run, since they call the OpenAI Embedding API to generate vectors. If you don't have an API key, don't worry — the pre-embedded data in `data/embedded_data.json` already contains all the vectors you need. You can read through Steps 1-5 to understand the concepts, then **[skip to Step 6](#step-6-create-vector-index-using-the-documentdb-for-vs-code-extension)** to start building with the pre-embedded data.
+
+
 ## 🛠️ Step 1: Understanding the Data
 
 Let's first explore the dataset structure in the **[Jupyter Notebook](../notebooks/generate-embeddings.ipynb)**.
@@ -278,7 +281,7 @@ Now that your data with embeddings is loaded in DocumentDB, you need to create a
 1. **Open the DocumentDB Extension** in VS Code (click the database icon in the sidebar)
 
 2. **Navigate to your Scrapbook**:
-   - Right-click on your connection
+   - Right-click on your collection `listings`
    - Select **"New Scrapbook"**
 
 3. **Run the following commands** in your scrapbook (select each block and press `Ctrl+Enter` or click "Run"):
