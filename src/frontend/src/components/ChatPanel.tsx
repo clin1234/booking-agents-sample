@@ -76,7 +76,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       const errorMessage: ChatMessage = {
         id: `error-${Date.now()}`,
         type: 'system',
-        content: "Sorry, I couldn't process your request. Please check the backend connection and try again.",
+        content: "Chat isn't available yet — complete Module 2 to enable AI-powered responses!",
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);

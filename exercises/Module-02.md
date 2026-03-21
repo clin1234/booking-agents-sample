@@ -520,17 +520,18 @@ Now let's verify everything works end-to-end.
 
 ### 6a. Restart the API
 
-If you're running with Docker Compose:
-
-```bash
-docker-compose up --build
-```
-
-Or if running the API directly:
+**Option A (recommended): If running the API directly:**
 
 ```bash
 cd src/api
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+
+**Option B: If you're running with Docker Compose:**
+
+```bash
+docker-compose up --build
 ```
 
 ### 6b. Test with curl

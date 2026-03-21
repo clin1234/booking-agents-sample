@@ -14,9 +14,9 @@ By the end of this module, you will:
 ## 📋 Prerequisites Checklist
 
 Before starting, ensure you have:
-- [ ] GitHub account
-- [ ] OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
-- [ ] Codespace created from this repository
+- GitHub account
+- OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
+- Codespace created from this repository
 
 ---
 
@@ -121,6 +121,7 @@ Download the 'DocumentDB for VS Code' extension on your codespace using the VS C
      ```
      mongodb://admin:password123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true&authMechanism=SCRAM-SHA-256
      ```
+   - Verify using username and password. The credentials should already be prefilled using the connection string.
 
 4. **Verify the connection** - You should see your connection in the DocumentDB explorer
 
@@ -167,23 +168,11 @@ The workshop includes a JSON file with sample data that already contains vector 
 
 ---
 
-## 🔑 Step 3: Configure OpenAI API Key (oprional)
+## 🔑 Step 3: Configure OpenAI API Key
 
 You need an OpenAI API key to generate embeddings and use chat completions.
 
-### Option A: Codespaces Secret (Recommended)
-
-1. Go to [GitHub Settings → Codespaces](https://github.com/settings/codespaces)
-2. Click "New secret"
-3. Name: `OPENAI_API_KEY`
-4. Value: Your OpenAI API key (starts with `sk-`)
-5. Repository access: Select this repository
-6. Click "Add secret"
-7. **Rebuild your Codespace** (Codespaces menu → Rebuild Container)
-
-### Option B: Local .env File
-
-1. Create a `.env` file in the project root:
+1. Create a `.env` file in the project root if it isn't created already:
    ```bash
    cp .env.example .env
    ```
