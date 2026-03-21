@@ -1,4 +1,4 @@
-# Contoso Bookings - Frontend
+# DocumentDB Bookings - Frontend
 
 A React-based frontend for the AI-Powered Booking Search Workshop. This application provides a progressive experience that works **from day 0** and gets better as you complete each workshop module.
 

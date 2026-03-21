@@ -1,4 +1,4 @@
-// Core types for the Contoso Bookings application
+// Core types for the DocumentDB Bookings application
 
 export interface Listing {
   id: number;

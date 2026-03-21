@@ -263,7 +263,7 @@ Each listing includes:
 
 ### Option 1: GitHub Codespaces (Recommended)
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/patty-chow/contoso-bookings?quickstart=1)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/documentdb/booking-agents-sample?quickstart=1)
 
 1. Click the badge above or create a new Codespace
 2. Wait for the environment to build (~2-3 minutes)
@@ -366,7 +366,7 @@ docker rmi documentdb
 ## Support
 
 - **During Workshop**: Ask your instructor
-- **Issues**: [GitHub Issues](https://github.com/patty-chow/contoso-bookings/issues)
+- **Issues**: [GitHub Issues](https://github.com/documentdb/booking-agents-sample/issues)
 - **Community**: [DocumentDB Discord](https://discord.gg/vH7bYu524D)
 
 ---
@@ -383,7 +383,7 @@ docker rmi documentdb
 - [Main README](../README.md) - Project overview
 - [Requirements](../requirements.txt) - Python dependencies
 - [Devcontainer Config](../.devcontainer/devcontainer.json) - Codespaces setup
-- [GitHub Repository](https://github.com/patty-chow/contoso-bookings)
+- [GitHub Repository](https://github.com/documentdb/booking-agents-sample)
 
 ---
 

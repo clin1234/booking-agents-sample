@@ -1,7 +1,7 @@
 .PHONY: help build up down logs shell test clean db-only backend-only frontend-only
 
 help:
-	@echo "Contoso Bookings - Development Commands"
+	@echo "DocumentDB Bookings - Development Commands"
 	@echo ""
 	@echo "Available commands:"
 	@echo "  make build          - Build Docker containers"

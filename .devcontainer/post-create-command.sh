@@ -51,10 +51,10 @@ fi
 echo "📝 Creating helpful bash aliases..."
 cat >> ~/.bashrc << 'EOF'
 
-# Contoso Bookings aliases
-alias workspace='cd /workspaces/contoso-bookings'
-alias start-backend='cd /workspaces/contoso-bookings/src/api && uvicorn main:app --reload --host 0.0.0.0'
-alias start-frontend='cd /workspaces/contoso-bookings/src/frontend && npm start'
+# DocumentDB Bookings aliases
+alias workspace='cd /workspaces/booking-agents-sample'
+alias start-backend='cd /workspaces/booking-agents-sample/src/api && uvicorn main:app --reload --host 0.0.0.0'
+alias start-frontend='cd /workspaces/booking-agents-sample/src/frontend && npm start'
 alias start-all='start-backend & start-frontend'
 alias db-connect='docker exec -it documentdb-container mongosh'
 alias db-start='docker start documentdb-container || docker run -dt -p 10260:10260 --name documentdb-container ghcr.io/documentdb/documentdb/documentdb-local:latest --username admin --password password123'

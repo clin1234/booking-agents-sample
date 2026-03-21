@@ -1,4 +1,4 @@
-# Docker Compose configuration for Contoso Bookings
+# Docker Compose configuration for DocumentDB Bookings
 # Run with: docker-compose up -d
 
 version: '3.8'
@@ -9,7 +9,7 @@ services:
     build:
       context: ./src/api
       dockerfile: Dockerfile
-    container_name: contoso-backend
+    container_name: booking-backend
     ports:
       - "8000:8000"
     environment:
@@ -38,7 +38,7 @@ services:
     build:
       context: ./src/frontend
       dockerfile: Dockerfile
-    container_name: contoso-frontend
+    container_name: booking-frontend
     ports:
       - "3000:80"
     depends_on:
@@ -48,7 +48,7 @@ services:
   # DocumentDB Database
   documentdb:
     image: ghcr.io/documentdb/documentdb/documentdb-local:latest
-    container_name: contoso-documentdb
+    container_name: booking-documentdb
     command: --username admin --password password123
     ports:
       - "10260:10260"
