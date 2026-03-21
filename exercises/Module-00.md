@@ -34,7 +34,7 @@ This workshop is designed to run entirely in **GitHub Codespaces**, providing a 
 2. **Open in GitHub Codespaces**:
    - Click the green **"Code"** button
    - Select the **"Codespaces"** tab
-   - Click **"Create codespace on completed"**
+   - Click **"Create codespace on workshop"**
    
    Alternatively, click this badge:
    
