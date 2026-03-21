@@ -5,7 +5,7 @@ import './ChatPanel.css';
 interface ChatPanelProps {
   isBackendConnected: boolean;
   isDemo: boolean;
-  onSearch: (query: string) => Promise<{ message: string; listings: SearchResult[] }>;
+  onSearch: (query: string) => Promise<{ message: string; listings: SearchResult[]; agentPath?: string[] }>;
   onDemoSearch: (query: string) => { message: string; listings: SearchResult[] };
 }
 
@@ -53,7 +53,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     setIsLoading(true);
 
     try {
-      let response: { message: string; listings: SearchResult[] };
+      let response: { message: string; listings: SearchResult[]; agentPath?: string[] };
       
       if (isBackendConnected && !isDemo) {
         response = await onSearch(userMessage.content);
@@ -69,6 +69,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         content: response.message,
         timestamp: new Date(),
         listings: response.listings,
+        agentPath: response.agentPath,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -103,6 +104,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               {msg.listings && msg.listings.length > 0 && (
                 <div className="message-listings-note">
                   Found {msg.listings.length} matching {msg.listings.length === 1 ? 'listing' : 'listings'}
+                </div>
+              )}
+              {msg.agentPath && msg.agentPath.length > 0 && (
+                <div className="message-agent-path">
+                  🔗 {msg.agentPath.join(' → ')}
                 </div>
               )}
             </div>

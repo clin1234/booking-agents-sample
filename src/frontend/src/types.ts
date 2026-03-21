@@ -40,6 +40,7 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   listings?: SearchResult[];
+  agentPath?: string[];
 }
 
 export interface BackendStatus {

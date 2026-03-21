@@ -80,7 +80,7 @@ const App: React.FC = () => {
       });
 
       setListings(searchResults);
-      return { message: data.message, listings: searchResults };
+      return { message: data.message, listings: searchResults, agentPath: data.agent_path || [] };
     } catch (error) {
       console.error('Backend search error:', error);
       throw error;

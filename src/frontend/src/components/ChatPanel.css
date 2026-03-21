@@ -98,6 +98,13 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
+.message-agent-path {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #9e9e9e;
+  font-style: italic;
+}
+
 .typing-indicator {
   display: flex;
   gap: 4px;
