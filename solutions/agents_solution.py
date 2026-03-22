@@ -232,17 +232,26 @@ async def filter_node(state: AgentState) -> dict:
     llm = create_llm()
 
     # Extract filter intent from query
-    system_prompt = """Extract filter criteria from the user query.
+    system_prompt = """Extract EXPLICIT filter criteria from the user query.
+ONLY extract filters that the user specifically states as constraints.
+Do NOT infer filters from general search terms.
+
+Rules:
+- "under $200" or "less than $200" → max_price: 200
+- "2 bedroom" or "at least 3 bedrooms" → min_bedrooms: N
+- "with wifi and parking" → amenities: ["Wifi", "Parking"]
+- "apartment" as a search term (e.g. "show me apartments") → do NOT filter, respond with {}
+- "apartment" as a constraint (e.g. "only apartments") → property_type: "Apartment"
 
 Respond in JSON format with these optional fields:
 - max_price: number (maximum price per night)
-- property_type: string (e.g. "Apartment", "House", "Condo", "Guesthouse")
+- property_type: string (ONLY if user says "only" or explicitly constrains type)
 - min_bedrooms: integer (minimum number of bedrooms)
 - amenities: array of strings (e.g. ["Wifi", "Kitchen", "Free parking"])
 
-Example: {"max_price": 200, "property_type": "Apartment", "min_bedrooms": 2}
+Example: {"max_price": 200, "min_bedrooms": 2}
 
-If no clear filters, respond with: {}"""
+When in doubt, respond with: {}"""
 
     messages = [
         SystemMessage(content=system_prompt),

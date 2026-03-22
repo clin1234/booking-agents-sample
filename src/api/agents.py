@@ -251,13 +251,13 @@ async def filter_node(state: AgentState) -> dict:
     #
     # Steps:
     #   1. Call create_llm() to get an LLM instance
-    #   2. Build a system prompt asking the LLM to extract filter criteria
-    #      as JSON with these optional fields:
-    #        - max_price: number
-    #        - property_type: string
-    #        - min_bedrooms: integer
-    #        - amenities: array of strings
-    #      Tell the LLM to respond with {} if no clear filters.
+    #   2. Build a system prompt asking the LLM to extract EXPLICIT filter
+    #      criteria as JSON. ONLY extract filters the user specifically states
+    #      as constraints — do NOT infer from general search terms.
+    #      Fields: max_price (number), property_type (string, only if user
+    #      says "only" or explicitly constrains), min_bedrooms (integer),
+    #      amenities (array of strings).
+    #      Tell the LLM: when in doubt, respond with {}
     #   3. Send [SystemMessage(prompt), HumanMessage(state['user_query'])]
     #      to the LLM with: response = await llm.ainvoke(messages)
     #   4. Parse: filters = json.loads(response.content)
