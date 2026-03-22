@@ -346,9 +346,17 @@ Check `agent_path` — it should show `["respond"]` instead of `["search"]`.
 # Should extract filters and narrow results
 curl -s -X POST http://localhost:8000/query_message \
   -H "Content-Type: application/json" \
-  -d '{"message": "2 bedroom apartment under $150 with wifi", "session_id": "ex2b"}' | python -m json.tool
+  -d '{"message": "2 bedroom place under $150 with wifi", "session_id": "ex2b"}' | python -m json.tool
 ```
-Check the `search_results` count — it should be less than 5 (filtered down from 20). Before, all 5 results passed through unfiltered.
+Check the `search_results` count — it should be less than 5 (filtered down from 20). All returned listings should have 2+ bedrooms, price ≤ $150, and wifi. Before this exercise, all 5 results passed through unfiltered.
+
+```bash
+# No explicit constraints — should NOT filter
+curl -s -X POST http://localhost:8000/query_message \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Show me places in Denver", "session_id": "ex2c"}' | python -m json.tool
+```
+Check that `search_results` has 5 results (no filtering applied). This verifies the LLM doesn't over-extract filters from general search terms.
 
 ---
 
