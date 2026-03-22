@@ -422,16 +422,16 @@ def build_agent_graph():
 # Public Interface
 # ============================================================================
 
-# Compiled graph (lazy initialization)
-_agent_graph = None
-
-
 def get_agent_graph():
-    """Get the compiled agent graph, building it if necessary."""
-    global _agent_graph
-    if _agent_graph is None and LANGGRAPH_AVAILABLE:
-        _agent_graph = build_agent_graph()
-    return _agent_graph
+    """
+    Build a fresh agent graph on each call.
+
+    Rebuilding ensures that code changes to node functions take effect
+    immediately when using uvicorn --reload during the workshop.
+    """
+    if not LANGGRAPH_AVAILABLE:
+        return None
+    return build_agent_graph()
 
 
 async def run_agent_query(query: str, session_id: str = "default") -> Dict[str, Any]:
